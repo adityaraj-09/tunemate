@@ -351,14 +351,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           onPressed: () {},
                         ),
                         
-                        SocialLoginButton(
-                          text: 'Continue with Facebook',
-                          iconPath: 'assets/icons/facebook.png',
-                          backgroundColor: const Color(0xFF1877F2),
-                          textColor: Colors.white,
-                          onPressed: () {},
-                        ),
-                        
+                      
                         const SizedBox(height: 32),
                         
                         // Sign in option

@@ -54,6 +54,7 @@ Future<void> setupDependencies() async {
     getIt.registerLazySingleton<MusicApiService>(() => MusicApiService(getIt<Dio>()));
     getIt.registerLazySingleton<ProfileApiService>(() => ProfileApiService(getIt<Dio>()));
     getIt.registerLazySingleton<SettingsApiService>(() => SettingsApiService(getIt<Dio>()));
+
   
   // Register providers
   getIt.registerLazySingleton<AuthProvider>(
@@ -62,6 +63,13 @@ Future<void> setupDependencies() async {
       getIt<SecureStorageService>(),
     ),
   );
+
+  getIt.registerLazySingleton<MusicPlayerProvider>(
+    () => MusicPlayerProvider(
+    
+    ),
+  );
+
 }
 
 // List of providers to be used with MultiProvider

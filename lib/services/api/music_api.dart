@@ -2,14 +2,14 @@
 import 'package:dio/dio.dart';
 import '../../models/music/song.dart';
 
-
 class MusicApiService {
   final Dio _dio;
 
   MusicApiService(this._dio);
 
   // Get trending songs
-  Future<List<Song>> getTrendingSongs({int limit = 20, String timeframe = 'week'}) async {
+  Future<List<Song>> getTrendingSongs(
+      {int limit = 20, String timeframe = 'week'}) async {
     try {
       final response = await _dio.get(
         '/api/music/trending',
@@ -24,15 +24,16 @@ class MusicApiService {
             .map((songData) => Song.fromJson(songData))
             .toList();
       }
-      
+
       return [];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Get trending songs by genre
-  Future<Map<String, List<Song>>> getTrendingByGenre({int limit = 5, String timeframe = 'week'}) async {
+  Future<Map<String, List<Song>>> getTrendingByGenre(
+      {int limit = 5, String timeframe = 'week'}) async {
     try {
       final response = await _dio.get(
         '/api/music/trending-by-genre',
@@ -44,21 +45,21 @@ class MusicApiService {
 
       if (response.data['success'] && response.data['data'] != null) {
         final result = <String, List<Song>>{};
-        
+
         for (var genreData in response.data['data']) {
           final genre = genreData['genre'] as String;
           final songs = (genreData['songs'] as List)
               .map((songData) => Song.fromJson(songData))
               .toList();
-          
+
           result[genre] = songs;
         }
-        
+
         return result;
       }
-      
+
       return {};
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -78,15 +79,16 @@ class MusicApiService {
             .map((songData) => Song.fromJson(songData))
             .toList();
       }
-      
+
       return [];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Get next songs based on current song
-  Future<List<Song>> getNextSongs(String currentSongId, {int limit = 10}) async {
+  Future<List<Song>> getNextSongs(String currentSongId,
+      {int limit = 10}) async {
     try {
       final response = await _dio.get(
         '/api/music/next-songs',
@@ -101,9 +103,9 @@ class MusicApiService {
             .map((songData) => Song.fromJson(songData))
             .toList();
       }
-      
+
       return [];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -120,7 +122,7 @@ class MusicApiService {
       );
 
       return response.data['success'] ?? false;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -140,9 +142,9 @@ class MusicApiService {
             .map((songData) => Song.fromJson(songData))
             .toList();
       }
-      
+
       return [];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -160,26 +162,26 @@ class MusicApiService {
 
       if (response.data['success']) {
         final result = <String, dynamic>{};
-        
+
         if (response.data['songs'] != null) {
           result['songs'] = (response.data['songs'] as List)
               .map((songData) => Song.fromJson(songData))
               .toList();
         }
-        
+
         if (response.data['artists'] != null) {
           result['artists'] = response.data['artists'];
         }
-        
+
         if (response.data['albums'] != null) {
           result['albums'] = response.data['albums'];
         }
-        
+
         return result;
       }
-      
+
       return {};
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -195,7 +197,7 @@ class MusicApiService {
       );
 
       return response.data['success'] ?? false;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -211,7 +213,7 @@ class MusicApiService {
       );
 
       return response.data['success'] ?? false;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -226,30 +228,31 @@ class MusicApiService {
             .map((playlistData) => Playlist.fromJson(playlistData))
             .toList();
       }
-      
+
       return [];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Create playlist
-  Future<Playlist> createPlaylist(String name, {String? description, List<String>? songIds}) async {
+  Future<Playlist> createPlaylist(String name,
+      {String? description, List<String>? songIds}) async {
     try {
-      final data =<String,dynamic> {
+      final data = <String, dynamic>{
         'name': name,
       };
-      
+
       if (description != null) data['description'] = description;
       if (songIds != null) data['songIds'] = songIds;
-      
+
       final response = await _dio.post(
         '/api/music/playlists',
         data: data,
       );
 
       return Playlist.fromJson(response.data['playlist']);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -259,7 +262,7 @@ class MusicApiService {
     try {
       final response = await _dio.get('/api/music/playlists/$playlistId');
       return Playlist.fromJson(response.data['playlist']);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -275,7 +278,7 @@ class MusicApiService {
       );
 
       return response.data['success'] ?? false;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -288,13 +291,14 @@ class MusicApiService {
       );
 
       return response.data['success'] ?? false;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Log song play
-  Future<void> logSongPlay(String songId, {int duration = 0, bool completed = false, String? source}) async {
+  Future<void> logSongPlay(String songId,
+      {int duration = 0, bool completed = false, String? source}) async {
     try {
       await _dio.post(
         '/api/music/log-play',
@@ -305,7 +309,7 @@ class MusicApiService {
           if (source != null) 'source': source,
         },
       );
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       // Silent fail, but log error
       print('Error logging song play: ${e.message}');
     }
@@ -316,31 +320,27 @@ class MusicApiService {
     try {
       final response = await _dio.get('/api/music/songs/$songId');
       return Song.fromJson(response.data['song']);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Error handling
-  Exception _handleError(DioError e) {
+  Exception _handleError(DioException e) {
     if (e.response != null) {
       if (e.response!.statusCode == 401) {
         return UnauthorizedException(
-          e.response?.data?['error'] ?? 'Unauthorized access'
-        );
+            e.response?.data?['error'] ?? 'Unauthorized access');
       }
-      
+
       if (e.response!.statusCode == 404) {
         return NotFoundException(
-          e.response?.data?['error'] ?? 'Resource not found'
-        );
+            e.response?.data?['error'] ?? 'Resource not found');
       }
-      
-      return ServerException(
-        e.response?.data?['error'] ?? 'Server error'
-      );
+
+      return ServerException(e.response?.data?['error'] ?? 'Server error');
     }
-    
+
     return NetworkException('Network error: ${e.message}');
   }
 }

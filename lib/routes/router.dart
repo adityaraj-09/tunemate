@@ -1,6 +1,7 @@
 // lib/routes/app_router.dart
 import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
+import 'package:app/screens/onboarding/onboarding.dart';
 import 'package:app/screens/privacy_screen.dart';
 import 'package:app/screens/search_screen.dart';
 import 'package:app/screens/settings_screen.dart';
@@ -59,6 +60,11 @@ class AppRouter {
           path: '/splash',
           builder: (context, state) {
             return const SplashScreen();
+          },
+        ),  GoRoute(
+          path: '/onboarding',
+          builder: (context, state) {
+            return const OnboardingScreen();
           },
         ),
 

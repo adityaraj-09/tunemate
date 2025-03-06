@@ -23,10 +23,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
   late Animation<double> _fadeAnimation;
   
   final List<Widget> _screens = [
-    const HomeScreen(),
-    const MusicScreen(),
+    Container(),  Container(),
+    
     Container(),
-    const ProfileScreen(),
+    Container(),
   ];
 
   @override

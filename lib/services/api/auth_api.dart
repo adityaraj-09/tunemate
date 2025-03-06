@@ -20,7 +20,7 @@ class AuthApiService {
       );
 
       return AuthResult.fromJson(response.data);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -50,7 +50,7 @@ class AuthApiService {
       );
 
       return AuthResult.fromJson(response.data);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -64,7 +64,7 @@ class AuthApiService {
       );
 
       return response.data['accessToken'];
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -76,7 +76,7 @@ class AuthApiService {
         '/api/auth/logout',
         data: {'refreshToken': refreshToken},
       );
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       // We still want to clear local tokens even if server request fails
       print('Logout error: ${e.message}');
     }
@@ -87,43 +87,37 @@ class AuthApiService {
     try {
       final response = await _dio.get('/api/auth/me');
       return User.fromJson(response.data['user']);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Error handling
-  Exception _handleError(DioError e) {
+  Exception _handleError(DioException e) {
     if (e.response != null) {
       if (e.response!.statusCode == 401) {
         return UnauthorizedException(
-          e.response?.data?['error'] ?? 'Invalid credentials'
-        );
+            e.response?.data?['error'] ?? 'Invalid credentials');
       }
-      
+
       if (e.response!.statusCode == 409) {
         return ConflictException(
-          e.response?.data?['error'] ?? 'Account already exists'
-        );
+            e.response?.data?['error'] ?? 'Account already exists');
       }
-      
+
       if (e.response!.statusCode == 400) {
         final errors = e.response?.data?['errors'];
         if (errors is List && errors.isNotEmpty) {
           return ValidationException(
-            errors.map((e) => '${e['param']}: ${e['msg']}').join(', ')
-          );
+              errors.map((e) => '${e['param']}: ${e['msg']}').join(', '));
         }
         return ValidationException(
-          e.response?.data?['error'] ?? 'Invalid data provided'
-        );
+            e.response?.data?['error'] ?? 'Invalid data provided');
       }
-      
-      return ServerException(
-        e.response?.data?['error'] ?? 'Server error'
-      );
+
+      return ServerException(e.response?.data?['error'] ?? 'Server error');
     }
-    
+
     return NetworkException('Network error: ${e.message}');
   }
 }

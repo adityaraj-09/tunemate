@@ -119,7 +119,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
             ClipPath(
               clipper: WaveClipper(),
               child: Container(
-                height: mediaQuery.size.height * 0.4,
+                height: mediaQuery.size.height * 0.3,
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: AppTheme.primaryGradient,
@@ -135,7 +135,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Music Match',
+                        'TuneMate',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,
