@@ -16,10 +16,9 @@ class MyApp extends StatelessWidget {
     final appRouter = AppRouter();
     final goRouter = appRouter.getRouter();
     return MaterialApp.router(
-      title: 'TuneMate',
+      title: 'Insien',
       theme: AppTheme.lightTheme,
       routerConfig: goRouter,
-      
       debugShowCheckedModeBanner: false,
     );
   }

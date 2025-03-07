@@ -6,45 +6,45 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 
-
 class SignInScreen extends StatefulWidget {
   static const routeName = '/signin';
-  
+
   const SignInScreen({Key? key}) : super(key: key);
-  
+
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderStateMixin {
+class _SignInScreenState extends State<SignInScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  
+
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
-  
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _rememberMe = false;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Set up animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -52,10 +52,10 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       parent: _animationController,
       curve: Curves.easeOutQuint,
     ));
-    
+
     _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -65,20 +65,20 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
     _passwordController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _submitForm() async {
     // First validate form
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
-    
+
     final success = await authProvider.signIn(username, password);
-    
+
     if (!success && mounted) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +89,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       );
     }
   }
-  
+
   void _navigateToSignUp() {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -103,13 +103,13 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final isAuthenticating = authProvider.isAuthenticating;
-    
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -128,14 +128,28 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: 120,
-                        height: 120,
+                        Container(
+                      width: 120,
+                      height: 120,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        image: DecorationImage(image: AssetImage('assets/images/logo.jpg'), fit: BoxFit.cover),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+
+                        ],
                       ),
-                      const SizedBox(height: 16),
+                        
+                      ),
+                      const SizedBox(height: 10),
                       const Text(
-                        'TuneMate',
+                        'Insien',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,
@@ -143,19 +157,13 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                           letterSpacing: 1.5,
                         ),
                       ),
-                      const Text(
-                        'Connect through music',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
+                    
                     ],
                   ),
                 ),
               ),
             ),
-            
+
             // Form container
             Padding(
               padding: const EdgeInsets.all(24),
@@ -185,7 +193,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Username field
                         AppTextField(
                           controller: _usernameController,
@@ -205,7 +213,7 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                             return null;
                           },
                         ),
-                        
+
                         // Password field
                         PasswordField(
                           controller: _passwordController,
@@ -219,9 +227,9 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                             return null;
                           },
                         ),
-                        
+
                         const SizedBox(height: 4),
-                        
+
                         // Remember me and forgot password
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -251,30 +259,30 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Sign in button
                         GradientButton(
                           text: 'SIGN IN',
                           onPressed: _submitForm,
                           isLoading: isAuthenticating,
                         ),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // OR divider
                         const AuthDivider(text: 'OR'),
-                        
+
                         const SizedBox(height: 24),
-                        
+
                         // Social login buttons
                         SocialLoginButton(
                           text: 'Continue with Google',
                           iconPath: 'assets/icons/google.png',
                           onPressed: () {},
                         ),
-                        
+
                         // SocialLoginButton(
                         //   text: 'Continue with Facebook',
                         //   iconPath: 'assets/icons/facebook.png',
@@ -282,9 +290,9 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                         //   textColor: Colors.white,
                         //   onPressed: () {},
                         // ),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         // Sign up option
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

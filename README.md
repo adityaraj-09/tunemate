@@ -1,8 +1,8 @@
-# TuneMate - Music Dating App
+# Insien - Music Dating App
 
 ## Overview
 
-TuneMate is a dating app that connects people through their shared music tastes. The app allows users to discover potential matches based on music compatibility, listen to music directly within the app, and communicate with matches. TuneMate leverages music preferences as a powerful way to create meaningful connections between users.
+Insien is a dating app that connects people through their shared music tastes. The app allows users to discover potential matches based on music compatibility, listen to music directly within the app, and communicate with matches. Insien leverages music preferences as a powerful way to create meaningful connections between users.
 
 ## Key Features
 
@@ -98,7 +98,7 @@ TuneMate is a dating app that connects people through their shared music tastes.
 
 ## Privacy and Data Usage
 
-TuneMate takes user privacy seriously:
+Insien takes user privacy seriously:
 - User can control profile visibility (Public, Matches Only, Private)
 - Granular control over what listening data is shared
 - Option to pause matching visibility
@@ -113,4 +113,4 @@ TuneMate takes user privacy seriously:
 
 ---
 
-TuneMate: Find love through music. ♫❤️
+Insien: Find love through music. ♫❤️

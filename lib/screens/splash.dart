@@ -63,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkAuthAndNavigate() async {
     final prefs = await SharedPreferences.getInstance();
     final onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
-  
 
     // Small delay to show splash screen
     await Future.delayed(const Duration(milliseconds: 500));
@@ -115,30 +114,30 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     // App icon
                     Container(
+                      width: 120,
+                      height: 120,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
+                        image: DecorationImage(image: AssetImage('assets/images/logo.jpg'), fit: BoxFit.cover),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
+
                         ],
                       ),
-                      child: Icon(
-                        Icons.music_note,
-                        size: 80,
-                        color: AppTheme.primaryColor,
+                        
                       ),
-                    ),
 
                     const SizedBox(height: 40),
 
                     // App name
                     const Text(
-                      'TuneMate',
+                      'Insien',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 36,
