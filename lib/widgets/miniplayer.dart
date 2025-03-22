@@ -1,9 +1,10 @@
 // lib/widgets/player/mini_player.dart
+import 'package:app/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/music_player_provider.dart';
-
+import 'package:go_router/go_router.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({Key? key}) : super(key: key);
@@ -11,19 +12,22 @@ class MiniPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerProvider = Provider.of<MusicPlayerProvider>(context);
+
     final playerState = playerProvider.playerState;
     final currentSong = playerState.currentSong;
-    
+
+  
     if (currentSong == null || !playerProvider.isMiniPlayerVisible) {
-      return const SizedBox.shrink();
+      return SizedBox.shrink();
     }
     
     return GestureDetector(
-      onTap: () => playerProvider.showFullScreenPlayer(),
+      onTap: () => {playerProvider.showFullScreenPlayer(), context.go('/full-player')},
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity! < 0) {
           // Swipe up to show full player
           playerProvider.showFullScreenPlayer();
+          context.go('/full-player');
         } else if (details.primaryVelocity! > 0) {
           // Swipe down to hide mini player
           playerProvider.toggleMiniPlayer();

@@ -1,6 +1,7 @@
 // lib/screens/profile/settings_screen.dart
 import 'package:app/screens/privacy_screen.dart';
-import 'package:app/services/api/settings_screen.dart';
+import 'package:app/services/api/settings_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/auth_widgets.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
@@ -9,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
-
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -37,8 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final settingsApi =
-          Provider.of<SettingsApiService>(context, listen: false);
+      final settingsApi = getIt<SettingsApiService>();
       final settings = await settingsApi.getSettings();
 
       setState(() {
@@ -338,7 +337,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              text:'Sign Out',
+              text: 'Sign Out',
             ),
 
             const SizedBox(height: 16),
@@ -434,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showVisibilityOptions() {
     final currentVisibility = _settings['profileVisibility'] ?? 'public';
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -514,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showPrivacyOptions() {
     Navigator.push(
       context,
@@ -523,10 +522,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showAudioQualityOptions() {
     final currentQuality = _settings['audioQuality'] ?? 'auto';
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -618,10 +617,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showThemeOptions() {
     final currentTheme = _settings['theme'] ?? 'system';
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -690,10 +689,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showLanguageOptions() {
     final currentLanguage = _settings['language'] ?? 'en';
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -808,13 +807,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showClearCacheConfirmation() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cache'),
-        content: const Text('This will clear all cached data. This action cannot be undone.'),
+        content: const Text(
+            'This will clear all cached data. This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -835,7 +835,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showSignOutConfirmation() {
     showDialog(
       context: context,
@@ -858,7 +858,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showDeleteAccountConfirmation() {
     showDialog(
       context: context,
@@ -887,29 +887,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   Future<void> _deleteAccount() async {
     setState(() {
       _isUpdating = true;
     });
-    
+
     try {
-      final settingsApi = Provider.of<SettingsApiService>(context, listen: false);
+      final settingsApi =
+          Provider.of<SettingsApiService>(context, listen: false);
       await settingsApi.deleteAccount();
-      
+
       // Sign out
       await _signOut();
     } catch (e) {
       setState(() {
         _isUpdating = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting account: ${e.toString()}')),
       );
     }
   }
-  
+
   Widget _buildRadioTile({
     required String title,
     String? subtitle,

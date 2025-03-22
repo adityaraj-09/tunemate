@@ -1,4 +1,5 @@
 // lib/screens/auth/sign_up_screen.dart
+import 'package:app/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
@@ -182,6 +183,16 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
       birthDate: _birthDate,
       gender: _selectedGender == 'Prefer not to say' ? null : _selectedGender,
     );
+    if(success && mounted) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully'),
+          backgroundColor: AppTheme.accentPurple,
+        ),
+      );
+      
+    }
     
     if (!success && mounted) {
       // Show error message

@@ -11,7 +11,8 @@ class Song {
   final String? year;
   final String? language;
   final String? genre;
-  
+  final String? albumUrl;
+
   Song({
     required this.id,
     required this.name,
@@ -24,12 +25,13 @@ class Song {
     this.year,
     this.language,
     this.genre,
+    this.albumUrl,
   });
-  
+
   factory Song.fromJson(Map<String, dynamic> json) {
     return Song(
       id: json['id'] ?? '',
-      name: json['songName'] ?? json['name'] ?? '',
+      name: json['song'] ?? json['name'] ?? '',
       album: json['album'] ?? '',
       artists: json['artists'] ?? json['primary_artists'] ?? '',
       imageUrl: json['imageUrl'] ?? json['image_url'] ?? json['image'] ?? '',
@@ -39,9 +41,10 @@ class Song {
       year: json['year'] ?? json['release_year'],
       language: json['language'],
       genre: json['genre'],
+      albumUrl: json['album_url'],
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -55,6 +58,7 @@ class Song {
       'year': year,
       'language': language,
       'genre': genre,
+      'albumUrl': albumUrl,
     };
   }
 }
@@ -67,7 +71,7 @@ class Playlist {
   final String? imageUrl;
   final List<Song> songs;
   final String? createdBy;
-  
+
   Playlist({
     required this.id,
     required this.name,
@@ -76,7 +80,7 @@ class Playlist {
     required this.songs,
     this.createdBy,
   });
-  
+
   factory Playlist.fromJson(Map<String, dynamic> json) {
     return Playlist(
       id: json['id'] ?? '',
@@ -84,12 +88,13 @@ class Playlist {
       description: json['description'],
       imageUrl: json['imageUrl'],
       songs: (json['songs'] as List?)
-          ?.map((song) => Song.fromJson(song))
-          .toList() ?? [],
+              ?.map((song) => Song.fromJson(song))
+              .toList() ??
+          [],
       createdBy: json['createdBy'],
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -114,9 +119,6 @@ enum PlaybackStatus {
   error
 }
 
-
-
-
 enum RepeatMode {
   off,
   all,
@@ -133,7 +135,7 @@ class PlayerState {
   final double volume;
   final bool isShuffled;
   final String? error;
-  
+
   PlayerState({
     this.status = PlaybackStatus.idle,
     this.currentSong,
@@ -145,28 +147,27 @@ class PlayerState {
     this.isShuffled = false,
     this.error,
   });
-  
+
   bool get isPlaying => status == PlaybackStatus.playing;
   bool get isPaused => status == PlaybackStatus.paused;
-  bool get isLoading => 
-       status == PlaybackStatus.loading ||
-       status == PlaybackStatus.buffering;
+  bool get isLoading =>
+      status == PlaybackStatus.loading || status == PlaybackStatus.buffering;
   bool get hasError => status == PlaybackStatus.error;
   bool get isIdle => status == PlaybackStatus.idle;
   bool get hasPrevious => currentIndex > 0;
   bool get hasNext => currentIndex < queue.length - 1;
-  
+
   // Progress percentage (0.0 to 1.0)
   double get progress {
     if (duration.inMilliseconds == 0) return 0.0;
     return position.inMilliseconds / duration.inMilliseconds;
   }
-  
+
   // Returns the remaining time
   Duration get remaining {
     return duration - position;
   }
-  
+
   PlayerState copyWith({
     PlaybackStatus? status,
     Song? currentSong,

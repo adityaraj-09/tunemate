@@ -1,5 +1,6 @@
 // lib/screens/music/music_screen.dart
 import 'package:app/screens/search_screen.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/music_widgets.dart';
@@ -74,7 +75,7 @@ class _MusicScreenState extends State<MusicScreen>
     });
 
     try {
-      final musicApi = Provider.of<MusicApiService>(context, listen: false);
+      final musicApi = getIt<MusicApiService>();
 
       // Fetch data in parallel
       final results = await Future.wait([

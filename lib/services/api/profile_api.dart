@@ -83,37 +83,37 @@ class ProfileApiService {
       {int limit = 20, int offset = 0}) async {
     try {
       final response = await _dio.get(
-        '/api/profile/favorites',
+        '/api/users/music/favorites',
         queryParameters: {
           'limit': limit,
           'offset': offset,
         },
       );
 
-      if (response.data['success'] && response.data['data'] != null) {
-        return response.data['data'];
-      }
+    
+        return response.data['favorites'];
+      
 
-      return [];
+    
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   // Get listening history
-  Future<List<dynamic>> getListeningHistory(
+  Future<dynamic> getListeningHistory(
       {int limit = 20, int offset = 0}) async {
     try {
       final response = await _dio.get(
-        '/api/profile/listening-history',
+        '/api/users/music/history',
         queryParameters: {
           'limit': limit,
           'offset': offset,
         },
       );
 
-      if (response.data['success'] && response.data['data'] != null) {
-        return response.data['data'];
+      if (response.data['success'] && response.data['history'] != null) {
+        return response.data;
       }
 
       return [];

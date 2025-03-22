@@ -409,7 +409,7 @@ class MusicListTile extends StatelessWidget {
                 
                 // Duration
                 Text(
-                  _formatDuration(Duration(seconds: int.parse(song.duration!))),
+                  _formatDuration(Duration(seconds: int.parse(song.duration ?? '500'))),
                   style: TextStyle(
                     color: AppTheme.mutedGrey,
                     fontSize: 14,

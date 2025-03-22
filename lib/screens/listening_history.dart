@@ -1,5 +1,6 @@
 // lib/screens/profile/listening_history_screen.dart
 import 'package:app/services/api/music_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/music_widgets.dart';
@@ -61,16 +62,16 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
     });
     
     try {
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
+      final profileApi =getIt<ProfileApiService>();
       final history = await profileApi.getListeningHistory(
         limit: _pageSize,
         offset: 0,
       );
       
       setState(() {
-        _historyItems = history;
+        _historyItems = history["history"];
         _isLoading = false;
-        _hasMoreData = history.length == _pageSize;
+        _hasMoreData = history["pagination"]["hasMore"] ?? false;
         _page = 1;
       });
     } catch (e) {
@@ -96,12 +97,12 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
       );
       
       setState(() {
-        if (moreHistory.isEmpty) {
+        if (moreHistory["history"].isEmpty) {
           _hasMoreData = false;
         } else {
-          _historyItems.addAll(moreHistory);
+          _historyItems.addAll(moreHistory['history']);
           _page++;
-          _hasMoreData = moreHistory.length == _pageSize;
+          _hasMoreData = moreHistory["history"].length == _pageSize;
         }
         _isLoadingMore = false;
       });
@@ -187,7 +188,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
     final Map<String, List<dynamic>> groupedHistory = {};
     
     for (final item in _historyItems) {
-      final DateTime listenDate = DateTime.parse(item['listenDate']);
+      final DateTime listenDate = DateTime.parse(item['lastPlayed']);
       final String dateKey = _getDateKey(listenDate);
       
       if (!groupedHistory.containsKey(dateKey)) {
@@ -240,7 +241,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                       ),
                       ...items.map((item) {
                         final song = Song.fromJson(item['song']);
-                        final DateTime listenDate = DateTime.parse(item['listenDate']);
+                        final DateTime listenDate = DateTime.parse(item['lastPlayed']);
                         final bool completed = item['completed'] ?? false;
                         
                         return Padding(
@@ -333,53 +334,26 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _favoriteSongs = [];
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoadingMore = false;
-  bool _hasMoreData = true;
-  int _page = 0;
-  final int _pageSize = 20;
   
   @override
   void initState() {
     super.initState();
     _loadFavorites();
-    _scrollController.addListener(_onScroll);
-  }
-  
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-  
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!_isLoadingMore && _hasMoreData) {
-        _loadMoreFavorites();
-      }
-    }
   }
   
   Future<void> _loadFavorites() async {
     setState(() {
       _isLoading = true;
       _error = null;
-      _page = 0;
     });
     
     try {
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
-      final favorites = await profileApi.getFavoriteSongs(
-        limit: _pageSize,
-        offset: 0,
-      );
+      final profileApi = getIt<ProfileApiService>();
+      final favorites = await profileApi.getFavoriteSongs();
       
       setState(() {
         _favoriteSongs = favorites;
         _isLoading = false;
-        _hasMoreData = favorites.length == _pageSize;
-        _page = 1;
       });
     } catch (e) {
       setState(() {
@@ -389,61 +363,13 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
     }
   }
   
-  Future<void> _loadMoreFavorites() async {
-    if (_isLoadingMore) return;
-    
-    setState(() {
-      _isLoadingMore = true;
-    });
-    
-    try {
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
-      final moreFavorites = await profileApi.getFavoriteSongs(
-        limit: _pageSize,
-        offset: _page * _pageSize,
-      );
-      
-      setState(() {
-        if (moreFavorites.isEmpty) {
-          _hasMoreData = false;
-        } else {
-          _favoriteSongs.addAll(moreFavorites);
-          _page++;
-          _hasMoreData = moreFavorites.length == _pageSize;
-        }
-        _isLoadingMore = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingMore = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading more: ${e.toString()}')),
-      );
-    }
-  }
-  
-  void _playSong(Song song) {
+  void _playSong(int index) {
     final playerProvider = Provider.of<MusicPlayerProvider>(context, listen: false);
-    playerProvider.playSong(song);
-  }
-  
-  Future<void> _unlikeSong(String songId) async {
-    try {
-      final musicApi = Provider.of<MusicApiService>(context, listen: false);
-      final success = await musicApi.unlikeSong(songId);
+    playerProvider.playPlaylist(
+      Playlist(id: "liked", name: "Liked Songs", songs: _favoriteSongs.map((item) => Song.fromJson(item["song"])).toList()),
+      index,
       
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Song removed from favorites')),
-        );
-        _loadFavorites();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing song: ${e.toString()}')),
-      );
-    }
+    );
   }
   
   @override
@@ -513,20 +439,10 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
       onRefresh: _loadFavorites,
       child: AnimationLimiter(
         child: ListView.builder(
-          controller: _scrollController,
           padding: const EdgeInsets.all(16),
-          itemCount: _favoriteSongs.length + (_isLoadingMore ? 1 : 0),
+          itemCount: _favoriteSongs.length,
           itemBuilder: (context, index) {
-            if (index >= _favoriteSongs.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            
-            final song = Song.fromJson(_favoriteSongs[index]);
+            final song = Song.fromJson(_favoriteSongs[index]["song"]);
             
             return AnimationConfiguration.staggeredList(
               position: index,
@@ -550,7 +466,6 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
                       ),
                     ),
                     onDismissed: (direction) {
-                      _unlikeSong(song.id);
                       // Optimistically remove from list
                       setState(() {
                         _favoriteSongs.removeAt(index);
@@ -560,7 +475,7 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: FavoriteSongTile(
                         song: song,
-                        onTap: () => _playSong(song),
+                        onTap: () => _playSong(index),
                       ),
                     ),
                   ),

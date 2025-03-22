@@ -2,12 +2,12 @@
 import 'package:app/screens/home/home_screen.dart';
 import 'package:app/screens/player/music_screen.dart';
 import 'package:app/screens/profile_screen.dart';
+import 'package:app/screens/search_screen.dart';
 import 'package:app/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/music_player_provider.dart';
-
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -16,17 +16,18 @@ class MainNavigationScreen extends StatefulWidget {
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> with SingleTickerProviderStateMixin {
+class _MainNavigationScreenState extends State<MainNavigationScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   late PageController _pageController;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   final List<Widget> _screens = [
-    Container(),  Container(),
-    
+    SearchScreen(),
+    MusicScreen(),
     Container(),
-    Container(),
+    ProfileScreen(),
   ];
 
   @override
@@ -52,7 +53,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
 
   void _onTabTapped(int index) {
     if (_currentIndex == index) return;
-    
+
     _animationController.reverse().then((_) {
       setState(() {
         _currentIndex = index;
@@ -64,9 +65,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
 
   @override
   Widget build(BuildContext context) {
-    final playerProvider = Provider.of<MusicPlayerProvider>(context);
+    final playerProvider = context.watch<MusicPlayerProvider>();
     final bool hasMiniplayer = playerProvider.isMiniPlayerVisible;
-    
+
+    print("miniplayer: $hasMiniplayer");
+
     return Scaffold(
       body: Stack(
         children: [
@@ -84,19 +87,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
               },
             ),
           ),
-          
+
           // Mini player
           Positioned(
             left: 0,
             right: 0,
-            bottom: hasMiniplayer ? 80 : 0, // Adjust for bottom nav
+            bottom:0, // Adjust for bottom nav
             child: const MiniPlayer(),
           ),
         ],
       ),
-      
+
       bottomNavigationBar: _buildBottomNavBar(),
-      
+
       // Floating action button for quick match
       floatingActionButton: _currentIndex == 0 || _currentIndex == 2
           ? FloatingActionButton(
@@ -133,9 +136,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-              _buildNavItem(1, Icons.music_note_outlined, Icons.music_note, 'Music'),
+              _buildNavItem(
+                  1, Icons.music_note_outlined, Icons.music_note, 'Music'),
               const SizedBox(width: 40), // Space for FAB
-              _buildNavItem(2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Matches'),
+              _buildNavItem(
+                  2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Matches'),
               _buildNavItem(3, Icons.person_outline, Icons.person, 'Profile'),
             ],
           ),
@@ -144,12 +149,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
     );
   }
 
-  Widget _buildNavItem(int index, IconData outlinedIcon, IconData filledIcon, String label) {
+  Widget _buildNavItem(
+      int index, IconData outlinedIcon, IconData filledIcon, String label) {
     final isSelected = _currentIndex == index;
     final iconColor = isSelected ? AppTheme.primaryColor : AppTheme.mutedGrey;
     final textColor = isSelected ? AppTheme.primaryColor : AppTheme.mutedGrey;
     final iconSize = isSelected ? 28.0 : 24.0;
-    
+
     return InkWell(
       onTap: () => _onTabTapped(index),
       child: Column(

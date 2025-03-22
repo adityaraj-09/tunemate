@@ -1,4 +1,6 @@
 // lib/screens/search/search_screen.dart
+import 'package:app/services/di/service_locator.dart';
+import 'package:app/services/search_history.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/search_widgets.dart';
 import 'package:flutter/material.dart';
@@ -21,19 +23,14 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final SearchHistoryService _searchHistoryService = SearchHistoryService();
   
   Timer? _debounce;
   bool _isLoading = false;
   String _searchQuery = '';
   Map<String, dynamic> _searchResults = {};
-  
-  List<String> _recentSearches = [
-    'Pop hits',
-    'Rock classics',
-    'Taylor Swift',
-    'Weekend vibes',
-    'Workout mix',
-  ]; // Would normally be loaded from local storage
+  List<String> _recentSearches = [];
+  bool _isLoadingHistory = true;
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -55,6 +52,9 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     
     _animationController.forward();
     
+    // Load search history from local storage
+    _loadSearchHistory();
+    
     // Focus search field automatically
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
@@ -69,6 +69,25 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _debounce?.cancel();
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSearchHistory() async {
+    setState(() {
+      _isLoadingHistory = true;
+    });
+    
+    try {
+      final history = await _searchHistoryService.getSearchHistory();
+      setState(() {
+        _recentSearches = history;
+        _isLoadingHistory = false;
+      });
+    } catch (e) {
+      print('Error loading search history: $e');
+      setState(() {
+        _isLoadingHistory = false;
+      });
+    }
   }
   
   void _onSearchChanged() {
@@ -94,23 +113,21 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     });
     
     try {
-      final musicApi = Provider.of<MusicApiService>(context, listen: false);
+      final musicApi = getIt<MusicApiService>();
       final results = await musicApi.search(query);
       
       if (mounted) {
         setState(() {
           _searchResults = results;
           _isLoading = false;
-          
-          // Add to recent searches
-          if (!_recentSearches.contains(query) && results.isNotEmpty) {
-            _recentSearches.insert(0, query);
-            if (_recentSearches.length > 5) {
-              _recentSearches.removeLast();
-            }
-            // Would normally save to local storage here
-          }
         });
+        
+        // Save to search history if results were found
+        if (_hasResults(results)) {
+          await _searchHistoryService.saveSearchQuery(query);
+          // Refresh history
+          await _loadSearchHistory();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -122,6 +139,14 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         );
       }
     }
+  }
+  
+  bool _hasResults(Map<String, dynamic> results) {
+    final songs = results['songs'] as List<Song>? ?? [];
+    final artists = results['artists'] as List<dynamic>? ?? [];
+    final albums = results['albums'] as List<dynamic>? ?? [];
+    
+    return songs.isNotEmpty || artists.isNotEmpty || albums.isNotEmpty;
   }
   
   void _playSong(Song song) {
@@ -142,11 +167,14 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _performSearch(query);
   }
   
-  void _clearRecentSearches() {
-    setState(() {
-      _recentSearches = [];
-      // Would normally clear from local storage too
-    });
+  Future<void> _clearRecentSearches() async {
+    await _searchHistoryService.clearSearchHistory();
+    _loadSearchHistory();
+  }
+  
+  Future<void> _removeSearchQuery(String query) async {
+    await _searchHistoryService.removeSearchQuery(query);
+    _loadSearchHistory();
   }
   
   @override
@@ -264,51 +292,56 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             ],
           ),
           const SizedBox(height: 16),
-          _recentSearches.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 32.0),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.search,
-                          size: 64,
-                          color: AppTheme.mutedGrey.withOpacity(0.5),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No recent searches',
-                          style: TextStyle(
-                            color: AppTheme.mutedGrey,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          _isLoadingHistory
+              ? const Center(
+                  child: CircularProgressIndicator(),
                 )
-              : Expanded(
-                  child: AnimationLimiter(
-                    child: ListView.builder(
-                      itemCount: _recentSearches.length,
-                      itemBuilder: (context, index) {
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: RecentSearchTile(
-                                query: _recentSearches[index],
-                                onTap: () => _onRecentSearchTap(_recentSearches[index]),
+              : _recentSearches.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 32.0),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.search,
+                              size: 64,
+                              color: AppTheme.mutedGrey.withOpacity(0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No recent searches',
+                              style: TextStyle(
+                                color: AppTheme.mutedGrey,
+                                fontSize: 16,
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          ],
+                        ),
+                      ),
+                    )
+                  : Expanded(
+                      child: AnimationLimiter(
+                        child: ListView.builder(
+                          itemCount: _recentSearches.length,
+                          itemBuilder: (context, index) {
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child: RecentSearchTile(
+                                    query: _recentSearches[index],
+                                    onTap: () => _onRecentSearchTap(_recentSearches[index]),
+                                    onDelete: () => _removeSearchQuery(_recentSearches[index]),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                  ),
-                ),
         ],
       ),
     );

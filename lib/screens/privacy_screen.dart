@@ -1,5 +1,5 @@
 // lib/screens/profile/privacy_settings_screen.dart
-import 'package:app/services/api/settings_screen.dart';
+import 'package:app/services/api/settings_api.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

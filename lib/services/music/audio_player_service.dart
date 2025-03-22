@@ -1,5 +1,7 @@
 // lib/services/music/audio_player_service.dart
 import 'dart:async';
+import 'package:app/services/api/music_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/services/music/background_player.dart' hide RepeatMode;
 import 'package:just_audio/just_audio.dart' hide PlayerState;
 import 'package:audio_session/audio_session.dart';
@@ -9,15 +11,21 @@ import '../../models/music/song.dart';
 
 class AudioPlayerService {
   // Singleton instance
-  static final AudioPlayerService _instance = AudioPlayerService._internal();
-  factory AudioPlayerService() => _instance;
-
-  AudioPlayerService._internal() {
+  static AudioPlayerService? _instance;
+  
+  // Factory that takes the dependency
+  factory AudioPlayerService(AudioHandlerService audioHandler) {
+    _instance ??= AudioPlayerService._internal(audioHandler);
+    return _instance!;
+  }
+  
+  // Audio handler for background playback
+  final AudioHandlerService _audioHandler;
+  final musicApi=getIt<MusicApiService>();
+  
+  AudioPlayerService._internal(this._audioHandler) {
     _init();
   }
-
-  // Audio handler for background playback
-  final AudioHandlerService _audioHandler = AudioHandlerService();
 
   // Player state controller
   final _playerStateController = StreamController<PlayerState>.broadcast();
@@ -30,11 +38,10 @@ class AudioPlayerService {
   // Initialize the audio service
   Future<void> _init() async {
     try {
-      // Initialize the audio handler for background playback
-      await _audioHandler.init();
       
       // Forward state updates from the audio handler
       _audioHandler.playerStateStream.listen((state) {
+
         _playerState = state;
         _playerStateController.add(_playerState);
       });
@@ -81,6 +88,7 @@ class AudioPlayerService {
   Future<void> playSong(Song song) async {
     try {
       await _audioHandler.playSong(song);
+    await musicApi.listenSong(song.id,int.parse( song.duration ?? "180"));
     } catch (e) {
       _updateState(
         status: PlaybackStatus.error,

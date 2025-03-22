@@ -1,17 +1,19 @@
 // lib/models/profile/music_taste.dart
+import 'package:app/models/music/song.dart';
+
 class MusicTaste {
   final List<GenrePreference> genres;
   final List<String> favoriteArtists;
   final List<String> favoriteGenres;
   final Map<String, double> eras;
-  
+
   MusicTaste({
     required this.genres,
     required this.favoriteArtists,
     required this.favoriteGenres,
     required this.eras,
   });
-  
+
   factory MusicTaste.fromJson(Map<String, dynamic> json) {
     return MusicTaste(
       genres: (json['genres'] as List)
@@ -26,7 +28,7 @@ class MusicTaste {
       eras: Map<String, double>.from(json['eras'] ?? {}),
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'genres': genres.map((genre) => genre.toJson()).toList(),
@@ -40,19 +42,19 @@ class MusicTaste {
 class GenrePreference {
   final String name;
   final double percentage;
-  
+
   GenrePreference({
     required this.name,
     required this.percentage,
   });
-  
+
   factory GenrePreference.fromJson(Map<String, dynamic> json) {
     return GenrePreference(
       name: json['name'] as String,
       percentage: (json['percentage'] as num).toDouble(),
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -73,7 +75,7 @@ class Match {
   final bool isActive;
   final DateTime matchedAt;
   final int messageCount;
-  
+
   Match({
     required this.id,
     required this.userId,
@@ -86,7 +88,7 @@ class Match {
     required this.matchedAt,
     required this.messageCount,
   });
-  
+
   factory Match.fromJson(Map<String, dynamic> json) {
     return Match(
       id: json['id'] as String,
@@ -105,8 +107,6 @@ class Match {
       messageCount: json['messageCount'] as int,
     );
   }
-  
-  
 }
 
 // lib/models/chat/message.dart
@@ -118,7 +118,7 @@ class Message {
   final DateTime timestamp;
   final bool isRead;
   final String? songId;
-  
+
   Message({
     required this.id,
     required this.matchId,
@@ -128,7 +128,7 @@ class Message {
     required this.isRead,
     this.songId,
   });
-  
+
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['id'] as String,
@@ -140,7 +140,7 @@ class Message {
       songId: json['songId'] as String?,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -154,6 +154,37 @@ class Message {
   }
 }
 
+class Album {
+  String title;
+  String? name;
+  String imageUrl;
+  String releaseDate;
+  List<Song> songs;
+  String permalink;
+
+  Album({
+    required this.title,
+    this.name,
+    required this.imageUrl,
+    required this.releaseDate,
+    required this.songs,
+    required this.permalink,
+  });
+
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return Album(
+      title: json['title'] as String,
+      name: json['name'] as String?,
+      imageUrl: json['image'] as String,
+      releaseDate: json['release_date'] as String,
+      songs: (json['songs'] as List)
+          .map((song) => Song.fromJson(song))
+          .toList(),
+      permalink: json['perma_url'] as String,
+    );
+  }
+
+}
 
 class Conversation {
   final String matchId;
@@ -163,7 +194,7 @@ class Conversation {
   final Message? lastMessage;
   final int unreadCount;
   final bool isActive;
-  
+
   Conversation({
     required this.matchId,
     required this.userId,
@@ -173,7 +204,7 @@ class Conversation {
     required this.unreadCount,
     required this.isActive,
   });
-  
+
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
       matchId: json['matchId'] as String,
@@ -187,7 +218,7 @@ class Conversation {
       isActive: json['isActive'] as bool,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'matchId': matchId,

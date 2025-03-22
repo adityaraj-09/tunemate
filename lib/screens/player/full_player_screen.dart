@@ -1,5 +1,8 @@
 // lib/screens/player/full_player_screen.dart
 import 'package:app/models/music/song.dart';
+import 'package:app/screens/splash.dart';
+import 'package:app/services/api/music_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/player/vinyl_record.dart';
 import 'package:app/widgets/player/waveform_painter.dart';
 import 'package:flutter/material.dart';
@@ -7,30 +10,31 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../config/theme.dart';
 import '../../providers/music_player_provider.dart';
-
+import 'package:go_router/go_router.dart';
 
 class FullPlayerScreen extends StatelessWidget {
   const FullPlayerScreen({Key? key}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
-    final playerProvider = Provider.of<MusicPlayerProvider>(context);
+    final playerProvider = context.watch<MusicPlayerProvider>();
+    final musicApi=getIt<MusicApiService>();
     final playerState = playerProvider.playerState;
     final currentSong = playerState.currentSong;
-    
+    print("currentSong: ${currentSong!.toJson()}");
     if (currentSong == null || !playerProvider.isFullScreenPlayerVisible) {
       return const SizedBox.shrink();
     }
-    
+
     final size = MediaQuery.of(context).size;
     final safeArea = MediaQuery.of(context).padding;
-    
+
     return Scaffold(
       body: GestureDetector(
         onVerticalDragEnd: (details) {
           if (details.primaryVelocity! > 0) {
             // Swipe down to close
-            playerProvider.hideFullScreenPlayer();
+            context.pop();
           }
         },
         child: Stack(
@@ -52,7 +56,7 @@ class FullPlayerScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Content
             SafeArea(
               child: Column(
@@ -60,13 +64,16 @@ class FullPlayerScreen extends StatelessWidget {
                 children: [
                   // App bar with close button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                          onPressed: () => playerProvider.hideFullScreenPlayer(),
+                          icon: const Icon(Icons.keyboard_arrow_down,
+                              color: Colors.white),
+                          onPressed: () =>
+                                context.pop(),
                           iconSize: 32,
                         ),
                         const Text(
@@ -77,20 +84,14 @@ class FullPlayerScreen extends StatelessWidget {
                             letterSpacing: 1.5,
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () {
-                            // Show options menu
-                            _showSongOptions(context, currentSong);
-                          },
-                        ),
+                        SizedBox()
                       ],
                     ),
                   ),
-                  
+
                   // Album art with vinyl effect
                   Expanded(
-                    flex: 5,
+                    flex: 4,
                     child: Center(
                       child: Hero(
                         tag: 'album-art-${currentSong.id}',
@@ -102,7 +103,7 @@ class FullPlayerScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   // Song info
                   Expanded(
                     flex: 3,
@@ -129,9 +130,9 @@ class FullPlayerScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 8),
-                          
+
                           // Artist
                           Hero(
                             tag: 'song-artist-${currentSong.id}',
@@ -149,9 +150,9 @@ class FullPlayerScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 8),
-                          
+
                           // Album
                           Text(
                             currentSong.album,
@@ -163,32 +164,34 @@ class FullPlayerScreen extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          
-                          const SizedBox(height: 32),
-                          
+
+                          const SizedBox(height: 20),
+
                           // Waveform visualization
-                          SizedBox(
-                            height: 60,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: CustomPaint(
-                                painter: WaveformPainter(
-                                  progress: playerState.duration.inMilliseconds > 0
-                                      ? playerState.position.inMilliseconds / 
-                                        playerState.duration.inMilliseconds
-                                      : 0.0,
-                                  activeColor: Colors.white,
-                                  inactiveColor: Colors.white30,
-                                  spacing: 3,
-                                  barWidth: 4,
-                                ),
-                                size: Size(size.width - 48, 60),
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
+                          // SizedBox(
+                          //   height: 60,
+                          //   child: ClipRRect(
+                          //     borderRadius: BorderRadius.circular(8),
+                          //     child: CustomPaint(
+                          //       painter: WaveformPainter(
+                          //         progress: playerState
+                          //                     .duration.inMilliseconds >
+                          //                 0
+                          //             ? playerState.position.inMilliseconds /
+                          //                 playerState.duration.inMilliseconds
+                          //             : 0.0,
+                          //         activeColor: Colors.white,
+                          //         inactiveColor: Colors.white30,
+                          //         spacing: 3,
+                          //         barWidth: 4,
+                          //       ),
+                          //       size: Size(size.width - 48, 60),
+                          //     ),
+                          //   ),
+                          // ),
+
+                          // const SizedBox(height: 16),
+
                           // Progress bar and duration
                           Row(
                             children: [
@@ -201,20 +204,24 @@ class FullPlayerScreen extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Slider(
-                                  value: playerState.position.inMilliseconds.toDouble(),
+                                  value:
+                                      playerState.position.inSeconds.toDouble(),
                                   min: 0.0,
-                                  max: playerState.duration.inMilliseconds > 0
-                                      ? playerState.duration.inMilliseconds.toDouble()
-                                      : 1.0,
+                                  max: double.parse(
+                                      playerState.currentSong!.duration ??
+                                          '500'),
                                   activeColor: Colors.white,
                                   inactiveColor: Colors.white24,
                                   onChanged: (value) {
-                                    playerProvider.seekTo(Duration(milliseconds: value.toInt()));
+                                    playerProvider.seekTo(
+                                        Duration(milliseconds: value.toInt()));
                                   },
                                 ),
                               ),
                               Text(
-                                _formatDuration(playerState.duration),
+                                _formatDuration(Duration(seconds:  int.parse(
+                                      playerState.currentSong!.duration ??
+                                          '500'))),
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -222,32 +229,33 @@ class FullPlayerScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          
+
                           // Player controls
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               // Shuffle button
-                              IconButton(
-                                icon: Icon(
-                                  Icons.shuffle,
-                                  color: playerState.isShuffled
-                                      ? AppTheme.accentAmber
-                                      : Colors.white70,
-                                ),
-                                onPressed: () => playerProvider.toggleShuffle(),
-                                iconSize: 24,
-                              ),
-                              
+                              // IconButton(
+                              //   icon: Icon(
+                              //     Icons.shuffle,
+                              //     color: playerState.isShuffled
+                              //         ? AppTheme.accentAmber
+                              //         : Colors.white70,
+                              //   ),
+                              //   onPressed: () => playerProvider.toggleShuffle(),
+                              //   iconSize: 24,
+                              // ),
+
                               // Previous button
                               IconButton(
-                                icon: const Icon(Icons.skip_previous, color: Colors.white),
+                                icon: const Icon(Icons.skip_previous,
+                                    color: Colors.white),
                                 onPressed: playerState.hasPrevious
                                     ? () => playerProvider.skipToPrevious()
                                     : null,
                                 iconSize: 36,
                               ),
-                              
+
                               // Play/Pause button
                               Container(
                                 decoration: BoxDecoration(
@@ -261,21 +269,23 @@ class FullPlayerScreen extends StatelessWidget {
                                         : Icons.play_arrow,
                                     color: Colors.white,
                                   ),
-                                  onPressed: () => playerProvider.togglePlayPause(),
+                                  onPressed: () =>
+                                      playerProvider.togglePlayPause(),
                                   iconSize: 48,
                                   padding: const EdgeInsets.all(8),
                                 ),
                               ),
-                              
+
                               // Next button
                               IconButton(
-                                icon: const Icon(Icons.skip_next, color: Colors.white),
+                                icon: const Icon(Icons.skip_next,
+                                    color: Colors.white),
                                 onPressed: playerState.hasNext
                                     ? () => playerProvider.skipToNext()
                                     : null,
                                 iconSize: 36,
                               ),
-                              
+
                               // Repeat button
                               // IconButton(
                               //   icon: Icon(
@@ -291,9 +301,9 @@ class FullPlayerScreen extends StatelessWidget {
                               // ),
                             ],
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Bottom controls
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -303,19 +313,25 @@ class FullPlayerScreen extends StatelessWidget {
                                 icon: Icons.playlist_add,
                                 onPressed: () {
                                   // Show add to playlist dialog
-                                  _showAddToPlaylistDialog(context, currentSong);
+                                  _showAddToPlaylistDialog(
+                                      context, currentSong);
                                 },
                               ),
-                              
+
                               // Share with match
                               _buildCircleButton(
                                 icon: Icons.favorite_border,
-                                onPressed: () {
-                                  // Show share with match dialog
-                                  _showShareWithMatchDialog(context, currentSong);
+                                onPressed: () async{
+                                  await  musicApi.likeSong(currentSong.id, true);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Liked ${currentSong.name}'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
                                 },
                               ),
-                              
+
                               // Lyrics
                               _buildCircleButton(
                                 icon: Icons.music_note,
@@ -324,7 +340,7 @@ class FullPlayerScreen extends StatelessWidget {
                                   _showLyricsSheet(context, currentSong);
                                 },
                               ),
-                              
+
                               // Download
                               _buildCircleButton(
                                 icon: Icons.download_outlined,
@@ -333,7 +349,8 @@ class FullPlayerScreen extends StatelessWidget {
                                   // playerProvider.downloadSong(currentSong);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Downloading ${currentSong.name}'),
+                                      content: Text(
+                                          'Downloading ${currentSong.name}'),
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );
@@ -353,7 +370,7 @@ class FullPlayerScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildCircleButton({
     required IconData icon,
     required VoidCallback onPressed,
@@ -370,7 +387,7 @@ class FullPlayerScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   IconData _getRepeatIcon(RepeatMode mode) {
     switch (mode) {
       case RepeatMode.off:
@@ -383,14 +400,14 @@ class FullPlayerScreen extends StatelessWidget {
         return Icons.repeat;
     }
   }
-  
+
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return '$minutes:$seconds';
   }
-  
+
   void _showSongOptions(BuildContext context, Song song) {
     showModalBottomSheet(
       context: context,
@@ -451,7 +468,8 @@ class FullPlayerScreen extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 // Download logic
-                final playerProvider = Provider.of<MusicPlayerProvider>(context, listen: false);
+                final playerProvider =
+                    Provider.of<MusicPlayerProvider>(context, listen: false);
                 // playerProvider.downloadSong(song);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -466,7 +484,7 @@ class FullPlayerScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildOptionTile({
     required IconData icon,
     required String title,
@@ -481,11 +499,16 @@ class FullPlayerScreen extends StatelessWidget {
       onTap: onTap,
     );
   }
-  
+
   void _showAddToPlaylistDialog(BuildContext context, Song song) {
     // This would be populated from your provider with actual playlists
-    final playlists = ['Favorites', 'My Playlist 1', 'Workout Mix', 'Chill Vibes'];
-    
+    final playlists = [
+      'Favorites',
+      'My Playlist 1',
+      'Workout Mix',
+      'Chill Vibes'
+    ];
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -498,7 +521,8 @@ class FullPlayerScreen extends StatelessWidget {
           width: double.maxFinite,
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: playlists.length + 1, // +1 for "Create new playlist" option
+            itemCount:
+                playlists.length + 1, // +1 for "Create new playlist" option
             itemBuilder: (context, index) {
               if (index == playlists.length) {
                 return ListTile(
@@ -513,7 +537,7 @@ class FullPlayerScreen extends StatelessWidget {
                   },
                 );
               }
-              
+
               return ListTile(
                 title: Text(
                   playlists[index],
@@ -536,7 +560,7 @@ class FullPlayerScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   void _showShareWithMatchDialog(BuildContext context, Song song) {
     // This would be populated from your matches provider
     final matches = [
@@ -545,7 +569,7 @@ class FullPlayerScreen extends StatelessWidget {
       {'name': 'Taylor', 'imageUrl': 'https://via.placeholder.com/150'},
       {'name': 'Casey', 'imageUrl': 'https://via.placeholder.com/150'},
     ];
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -575,7 +599,8 @@ class FullPlayerScreen extends StatelessWidget {
                   // Share song with selected match
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Shared "${song.name}" with ${match['name']}'),
+                      content:
+                          Text('Shared "${song.name}" with ${match['name']}'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -587,7 +612,7 @@ class FullPlayerScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   void _showLyricsSheet(BuildContext context, Song song) {
     // This would be fetched from your lyrics provider
     final lyrics = '''
@@ -623,7 +648,7 @@ Outro:
 The music fades but the memory stays
 I'll find you again, one of these days
     ''';
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -667,7 +692,8 @@ I'll find you again, one of these days
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: Text(
                     lyrics,
                     style: const TextStyle(
@@ -702,7 +728,7 @@ extension PlayerStateExtension on PlayerState {
   bool get isCompleted => status == PlaybackStatus.completed;
   bool get isError => status == PlaybackStatus.error;
   bool get isLoading => status == PlaybackStatus.loading;
-  
+
   bool get hasNext => queue.isNotEmpty && currentIndex < queue.length - 1;
   bool get hasPrevious => queue.isNotEmpty && currentIndex > 0;
 }

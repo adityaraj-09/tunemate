@@ -2,6 +2,7 @@
 import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
 import 'package:app/screens/onboarding/onboarding.dart';
+import 'package:app/screens/player/full_player_screen.dart';
 import 'package:app/screens/privacy_screen.dart';
 import 'package:app/screens/search_screen.dart';
 import 'package:app/screens/settings_screen.dart';
@@ -32,6 +33,7 @@ class AppRouter {
 
   // Runs the authentication middleware
   String? _runAuthMiddleware(BuildContext context, GoRouterState state) {
+    final authProvider =getIt<AuthProvider>();
     final isAuthenticated = authProvider.isAuthenticated;
 
     if (!isAuthenticated) {
@@ -99,6 +101,7 @@ class AppRouter {
               providers: [
                 ChangeNotifierProvider.value(value: authProvider),
                 ChangeNotifierProvider.value(value: musicPlayerProvider),
+                
               ],
               child: const MainNavigationScreen(),
             );
@@ -118,6 +121,11 @@ class AppRouter {
               path: 'settings',
               builder: (context, state) {
                 return const SettingsScreen();
+              },
+            ),  GoRoute(
+              path: 'full-player',
+              builder: (context, state) {
+                return const FullPlayerScreen();
               },
             ),
             GoRoute(

@@ -82,6 +82,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final result = await _authApi.signIn(username, password);
       
+    
       // Save to secure storage
       await _storage.saveTokens(
         accessToken: result.accessToken,
@@ -98,7 +99,38 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
-  
+  Future<bool> refreshToken() async {
+    try {
+      final refreshToken = await _storage.getRefreshToken();
+      
+      if (refreshToken == null || refreshToken.isEmpty) {
+        print("No refresh token available");
+        return false;
+      }
+      
+      print("Refreshing token using: $refreshToken");
+      
+      // Get new access token
+      final newAccessToken = await _authApi.refreshToken(refreshToken);
+      
+      if (newAccessToken.isEmpty) {
+        print("Received empty access token during refresh");
+        return false;
+      }
+      
+      // Save the new token
+      await _storage.saveToken(newAccessToken);
+      
+      
+    
+      
+      print("Token refreshed successfully");
+      return true;
+    } catch (e) {
+      print('Failed to refresh token: $e');
+      return false;
+    }
+  }
   // Register new user
   Future<bool> signUp({
     required String username,

@@ -153,9 +153,9 @@ class MusicApiService {
   Future<Map<String, dynamic>> search(String query, {int limit = 20}) async {
     try {
       final response = await _dio.get(
-        '/api/music/search',
+        '/api/songs/search',
         queryParameters: {
-          'query': query,
+          'q': query,
           'limit': limit,
         },
       );
@@ -187,12 +187,13 @@ class MusicApiService {
   }
 
   // Like a song
-  Future<bool> likeSong(String songId) async {
+  Future<bool> likeSong(String songId,bool isFav) async {
     try {
       final response = await _dio.post(
-        '/api/music/like',
+        '/api/users/music/favorite',
         data: {
           'songId': songId,
+          "isFavorite": isFav,
         },
       );
 
@@ -200,15 +201,15 @@ class MusicApiService {
     } on DioException catch (e) {
       throw _handleError(e);
     }
-  }
-
-  // Unlike a song
-  Future<bool> unlikeSong(String songId) async {
+  }  
+  
+  Future<bool> listenSong(String songId,int duration) async {
     try {
-      final response = await _dio.delete(
-        '/api/music/like',
+      final response = await _dio.post(
+        '/api/songs/listen',
         data: {
           'songId': songId,
+          "duration": duration,
         },
       );
 
@@ -217,6 +218,26 @@ class MusicApiService {
       throw _handleError(e);
     }
   }
+
+Future<dynamic> getAlbum(String url) async{
+    try {
+      final response = await _dio.get(
+        '/api/songs/albums',
+        queryParameters: {
+          "query": url,
+          "lyrics": true,
+        }
+      );
+
+    
+        return response.data;
+      
+
+    
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+}
 
   // Get user playlists
   Future<List<Playlist>> getUserPlaylists() async {

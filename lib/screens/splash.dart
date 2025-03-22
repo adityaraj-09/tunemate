@@ -64,8 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
 
-    // Small delay to show splash screen
-    await Future.delayed(const Duration(milliseconds: 500));
+  
 
     if (!onboardingCompleted) {
       // Show onboarding first
@@ -73,17 +72,7 @@ class _SplashScreenState extends State<SplashScreen>
         context.go('/onboarding');
       }
     } else {
-      // Check if logged in
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      if (authProvider.isAuthenticated) {
-        // Navigate to home screen
-        if (mounted) {
-          context.go('/');
-        }
-      } else {
-        context.go('/login');
-      }
+      context.go("/");
     }
   }
 
@@ -120,18 +109,18 @@ class _SplashScreenState extends State<SplashScreen>
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        image: DecorationImage(image: AssetImage('assets/images/logo.jpg'), fit: BoxFit.cover),
+                        image: DecorationImage(
+                            image: AssetImage('assets/images/logo.jpg'),
+                            fit: BoxFit.cover),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
-
                         ],
                       ),
-                        
-                      ),
+                    ),
 
                     const SizedBox(height: 40),
 

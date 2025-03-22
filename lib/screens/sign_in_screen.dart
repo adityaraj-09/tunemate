@@ -1,10 +1,12 @@
 // lib/screens/auth/sign_in_screen.dart
+import 'package:app/routes/router.dart';
 import 'package:app/screens/signup_screen.dart';
 import 'package:app/widgets/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class SignInScreen extends StatefulWidget {
   static const routeName = '/signin';
@@ -78,7 +80,9 @@ class _SignInScreenState extends State<SignInScreen>
     final password = _passwordController.text;
 
     final success = await authProvider.signIn(username, password);
-
+    if (success && mounted) {
+      context.go("/");
+    }
     if (!success && mounted) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,24 +132,24 @@ class _SignInScreenState extends State<SignInScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                        Container(
-                      width: 120,
-                      height: 120,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        image: DecorationImage(image: AssetImage('assets/images/logo.jpg'), fit: BoxFit.cover),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-
-                        ],
-                      ),
-                        
+                      Container(
+                        width: 120,
+                        height: 120,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: AssetImage('assets/images/logo.jpg'),
+                              fit: BoxFit.cover),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
@@ -157,7 +161,6 @@ class _SignInScreenState extends State<SignInScreen>
                           letterSpacing: 1.5,
                         ),
                       ),
-                    
                     ],
                   ),
                 ),

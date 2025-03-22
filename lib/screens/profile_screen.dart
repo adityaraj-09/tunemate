@@ -3,6 +3,7 @@ import 'package:app/models/music/models.dart';
 import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
 import 'package:app/screens/settings_screen.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/auth_widgets.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/profile_widgets.dart';
@@ -65,7 +66,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     
     _scrollController.addListener(_onScroll);
     
-    _loadProfileData();
+    // Delay data loading slightly to ensure providers are fully initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfileData();
+    });
+    
     _animationController.forward();
   }
   
@@ -84,35 +89,61 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   Future<void> _loadProfileData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    
     try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      
+      // Get auth provider safely
+      if (!mounted) return;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
       
-      // Get cached user from auth provider
-      _user = authProvider.currentUser;
+      // Check if user is available from auth provider
+      final user = authProvider.currentUser;
+      print("Current user: $user");
       
-      // Fetch data in parallel
-      final results = await Future.wait([
-        profileApi.getMusicTaste(),
-        profileApi.getFavoriteSongs(limit: 5),
-      ]);
-      
-      if (mounted) {
+      if (user != null) {
         setState(() {
-          _musicTaste = results[0] as MusicTaste;
-          _favoriteSongs = results[1] as List<dynamic>;
-          _isLoading = false;
+          _user = user;
+        });
+        
+        // Now get profile API
+        if (!mounted) return;
+        final profileApi = getIt<ProfileApiService>();
+        
+        // Get music taste and favorite songs data
+        try {
+          final results = await Future.wait([
+            profileApi.getMusicTaste(),
+            profileApi.getFavoriteSongs(limit: 5),
+          ]);
+          
+          if (mounted) {
+            setState(() {
+              _musicTaste = results[0] as MusicTaste;
+              _favoriteSongs = results[1] as List<dynamic>;
+            });
+          }
+        } catch (e) {
+          print("Error fetching music taste or favorites: $e");
+          // Don't set error state here to allow partial UI to show
+        }
+      } else {
+        setState(() {
+          _error = "User not found. Please log in again.";
         });
       }
     } catch (e) {
+      print("Error in _loadProfileData: $e");
       if (mounted) {
         setState(() {
           _error = e.toString();
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
           _isLoading = false;
         });
       }
@@ -129,6 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     
+    // Show loading indicator while initial loading
     if (_isLoading && _user == null) {
       return const Scaffold(
         body: Center(
@@ -137,6 +169,69 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       );
     }
     
+    // Handle error case
+    if (_error != null && _user == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error loading profile',
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(_error!),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadProfileData,
+                child: const Text('Try Again'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // If no user is available after loading, show a user-friendly message
+    if (_user == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.person_off,
+                size: 60,
+                color: AppTheme.mutedGrey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Profile not available',
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              const Text('Please log in to view your profile'),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to login or take appropriate action
+                },
+                child: const Text('Log In'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // If we reach here, we have a user
     final user = _user!;
     
     return Scaffold(
@@ -149,9 +244,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             right: 0,
             height: size.height * 0.4,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: AppTheme.purpleBlueGradient,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
@@ -199,8 +294,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               child: CircleAvatar(
                                 radius: 50,
                                 backgroundColor: Colors.white,
-                                backgroundImage: user.profilePictureUrl != null
-                                    ? NetworkImage(user.profilePictureUrl!)
+                                backgroundImage: user.profilePictureUrl != null 
+                                    ? NetworkImage(user.profilePictureUrl!) 
                                     : null,
                                 child: user.profilePictureUrl == null
                                     ? Text(
@@ -240,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           const SizedBox(height: 24),
                           
                           // Stats row
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               ProfileStat(
@@ -343,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               const SizedBox(height: 16),
                               
                               // Genre chart
-                              _isLoading || _musicTaste == null
+                              _musicTaste == null
                                 ? const ShimmerLoading(height: 220)
                                 : SizedBox(
                                     height: 220,
@@ -443,21 +538,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   Widget _buildFavoriteSongsPreview() {
-    if (_isLoading) {
-      return Column(
-        children: List.generate(
-          3,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: ShimmerLoading(
-              height: 70,
-              borderRadius: 12,
-            ),
-          ),
-        ),
-      );
-    }
-    
     if (_favoriteSongs.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
@@ -488,22 +568,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   Widget _buildRecentActivityList() {
-    // Placeholder for recent activity
-    if (_isLoading) {
-      return Column(
-        children: List.generate(
-          3,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: ShimmerLoading(
-              height: 70,
-              borderRadius: 12,
-            ),
-          ),
-        ),
-      );
-    }
-    
     // Dummy activity items
     final activities = [
       {
@@ -582,7 +646,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     const SizedBox(height: 4),
                     Text(
                       activity['time']!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppTheme.mutedGrey,
                         fontSize: 12,
                       ),

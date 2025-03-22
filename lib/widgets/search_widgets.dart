@@ -210,11 +210,13 @@ class SearchResultTile extends StatelessWidget {
 class RecentSearchTile extends StatelessWidget {
   final String query;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const RecentSearchTile({
     Key? key,
     required this.query,
     required this.onTap,
+    this.onDelete,
   }) : super(key: key);
 
   @override
@@ -245,6 +247,15 @@ class RecentSearchTile extends StatelessWidget {
                   ),
                 ),
               ),
+              if (onDelete != null)
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: AppTheme.mutedGrey,
+                    size: 18,
+                  ),
+                  onPressed: onDelete,
+                ),
               IconButton(
                 icon: Icon(
                   Icons.north_west,
