@@ -1,8 +1,11 @@
 // lib/screens/player/full_player_screen.dart
 import 'package:app/models/music/song.dart';
+import 'package:app/routes/router.dart';
 import 'package:app/screens/splash.dart';
 import 'package:app/services/api/music_api.dart';
 import 'package:app/services/di/service_locator.dart';
+import 'package:app/widgets/common/bottomsheet-menu.dart';
+import 'package:app/widgets/common/lyrics.dart';
 import 'package:app/widgets/player/vinyl_record.dart';
 import 'package:app/widgets/player/waveform_painter.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +21,7 @@ class FullPlayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerProvider = context.watch<MusicPlayerProvider>();
-    final musicApi=getIt<MusicApiService>();
+    final musicApi = getIt<MusicApiService>();
     final playerState = playerProvider.playerState;
     final currentSong = playerState.currentSong;
     print("currentSong: ${currentSong!.toJson()}");
@@ -72,8 +75,7 @@ class FullPlayerScreen extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.keyboard_arrow_down,
                               color: Colors.white),
-                          onPressed: () =>
-                                context.pop(),
+                          onPressed: () => context.pop(),
                           iconSize: 32,
                         ),
                         const Text(
@@ -84,7 +86,14 @@ class FullPlayerScreen extends StatelessWidget {
                             letterSpacing: 1.5,
                           ),
                         ),
-                        SizedBox()
+                        IconButton(
+                            onPressed: () {
+                              showMenuSheet(context, currentSong);
+                            },
+                            icon: Icon(
+                              Icons.more_horiz,
+                              color: Colors.white,
+                            ))
                       ],
                     ),
                   ),
@@ -214,14 +223,15 @@ class FullPlayerScreen extends StatelessWidget {
                                   inactiveColor: Colors.white24,
                                   onChanged: (value) {
                                     playerProvider.seekTo(
-                                        Duration(milliseconds: value.toInt()));
+                                        Duration(seconds: value.toInt()));
                                   },
                                 ),
                               ),
                               Text(
-                                _formatDuration(Duration(seconds:  int.parse(
-                                      playerState.currentSong!.duration ??
-                                          '500'))),
+                                _formatDuration(Duration(
+                                    seconds: int.parse(
+                                        playerState.currentSong!.duration ??
+                                            '500'))),
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -321,11 +331,12 @@ class FullPlayerScreen extends StatelessWidget {
                               // Share with match
                               _buildCircleButton(
                                 icon: Icons.favorite_border,
-                                onPressed: () async{
-                                  await  musicApi.likeSong(currentSong.id, true);
+                                onPressed: () async {
+                                  await musicApi.likeSong(currentSong, true);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Liked ${currentSong.name}'),
+                                      content:
+                                          Text('Liked ${currentSong.name}'),
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );
@@ -451,17 +462,20 @@ class FullPlayerScreen extends StatelessWidget {
               title: 'View Artist',
               onTap: () {
                 Navigator.pop(context);
+
                 // Navigate to artist page
               },
             ),
-            _buildOptionTile(
-              icon: Icons.album,
-              title: 'View Album',
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to album page
-              },
-            ),
+            if (song.albumUrl != null)
+              _buildOptionTile(
+                icon: Icons.album,
+                title: 'View Album',
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go("/album",
+                      extra: AlbumScreenParams(albumUrl: song.albumUrl!));
+                },
+              ),
             _buildOptionTile(
               icon: Icons.download_outlined,
               title: 'Download',
@@ -470,7 +484,7 @@ class FullPlayerScreen extends StatelessWidget {
                 // Download logic
                 final playerProvider =
                     Provider.of<MusicPlayerProvider>(context, listen: false);
-                // playerProvider.downloadSong(song);
+                playerProvider.downloadSong(song);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Downloading ${song.name}'),
@@ -615,39 +629,7 @@ class FullPlayerScreen extends StatelessWidget {
 
   void _showLyricsSheet(BuildContext context, Song song) {
     // This would be fetched from your lyrics provider
-    final lyrics = '''
-Verse 1:
-The city lights flicker beneath the stars
-I'm thinking about you, wondering where you are
-These melodies keep playing in my mind
-Taking me back to that moment in time
-
-Chorus:
-And I keep on dreaming, keep on believing
-That someday we'll meet again
-The music's still playing, the rhythm's still saying
-Our story isn't over yet
-
-Verse 2:
-The playlist we made on that summer night
-The songs that we danced to until first light
-Every track reminds me of your smile
-I'd cross a thousand miles, just to see you for a while
-
-[Chorus repeats]
-
-Bridge:
-The beat goes on, the melody lingers
-Like your touch upon my fingers
-This harmony connects us still
-Across the distance, against our will
-
-[Chorus repeats]
-
-Outro:
-The music fades but the memory stays
-I'll find you again, one of these days
-    ''';
+    final lyrics = song.lyrics ?? "No lyrics available";
 
     showModalBottomSheet(
       context: context,
@@ -694,14 +676,7 @@ I'll find you again, one of these days
                   controller: scrollController,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  child: Text(
-                    lyrics,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
+                  child: LyricsDisplay(lyrics: lyrics),
                 ),
               ),
             ],

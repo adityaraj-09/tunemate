@@ -115,14 +115,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         // Get music taste and favorite songs data
         try {
           final results = await Future.wait([
-            profileApi.getMusicTaste(),
+            // profileApi.getMusicTaste(),
             profileApi.getFavoriteSongs(limit: 5),
           ]);
           
           if (mounted) {
             setState(() {
-              _musicTaste = results[0] as MusicTaste;
-              _favoriteSongs = results[1] as List<dynamic>;
+              // _musicTaste = results[0] as MusicTaste;
+              _favoriteSongs = results[0] ;
             });
           }
         } catch (e) {
@@ -560,8 +560,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return Column(
       children: _favoriteSongs.map((song) {
         return FavoriteSongTile(
-          song: Song.fromJson(song),
-          onTap: () => _playSong(Song.fromJson(song)),
+          song: Song.fromJson(song["song"]),
+          onTap: () => _playSong(Song.fromJson(song["song"])),
         );
       }).toList(),
     );

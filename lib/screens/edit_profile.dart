@@ -1,4 +1,5 @@
 // lib/screens/profile/edit_profile_screen.dart
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -111,7 +112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
     
     try {
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
+      final profileApi = getIt<ProfileApiService>();
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
       // Upload profile photo if changed

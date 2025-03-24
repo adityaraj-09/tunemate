@@ -48,17 +48,19 @@ class Song {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'song': name,
       'album': album,
-      'artists': artists,
-      'imageUrl': imageUrl,
-      'mediaUrl': mediaUrl,
+      'primary_artists': artists,
+      'singers':artists,
+      'image': imageUrl,
+      'media_url': mediaUrl,
       'lyrics': lyrics,
       'duration': duration,
+      "copyright_text":'',
       'year': year,
       'language': language,
       'genre': genre,
-      'albumUrl': albumUrl,
+      'album_url': albumUrl,
     };
   }
 }

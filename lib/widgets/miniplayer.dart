@@ -22,12 +22,12 @@ class MiniPlayer extends StatelessWidget {
     }
     
     return GestureDetector(
-      onTap: () => {playerProvider.showFullScreenPlayer(), context.go('/full-player')},
+      onTap: () => {playerProvider.showFullScreenPlayer(), context.push('/full-player')},
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity! < 0) {
           // Swipe up to show full player
           playerProvider.showFullScreenPlayer();
-          context.go('/full-player');
+          context.push('/full-player');
         } else if (details.primaryVelocity! > 0) {
           // Swipe down to hide mini player
           playerProvider.toggleMiniPlayer();
@@ -35,10 +35,10 @@ class MiniPlayer extends StatelessWidget {
       },
       child: Container(
         height: 72,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric( vertical:0),
         decoration: BoxDecoration(
           gradient: AppTheme.primaryGradient,
-          borderRadius: BorderRadius.circular(12),
+        
           boxShadow: [
             BoxShadow(
               color: AppTheme.primaryColor.withOpacity(0.3),

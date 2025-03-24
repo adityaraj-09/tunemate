@@ -1,4 +1,5 @@
 // lib/routes/app_router.dart
+import 'package:app/screens/album_screen.dart';
 import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
 import 'package:app/screens/onboarding/onboarding.dart';
@@ -28,6 +29,13 @@ class SearchPageParams {
   });
 }
 
+class AlbumScreenParams {
+  final String albumUrl;
+
+  AlbumScreenParams({
+    required this.albumUrl,
+  });
+}
 class AppRouter {
   final authProvider =getIt<AuthProvider>();
 
@@ -126,6 +134,14 @@ class AppRouter {
               path: 'full-player',
               builder: (context, state) {
                 return const FullPlayerScreen();
+              },
+            ), GoRoute(
+              path: 'album',
+              builder: (context, state) {
+                var data=state.extra as AlbumScreenParams?;
+                return  AlbumDetailScreen(
+                  albumUrl: data!.albumUrl,
+                );
               },
             ),
             GoRoute(

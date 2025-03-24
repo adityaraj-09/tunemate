@@ -50,7 +50,7 @@ class AudioHandlerService {
 
     // Listen for playback state changes
     _audioHandler.playbackState.listen((playbackState) {
-      print("playback state"+ playbackState.position.inSeconds.toString());
+      print("playback state" + playbackState.position.inSeconds.toString());
       _updateStateFromPlaybackState(playbackState);
     });
 
@@ -107,6 +107,7 @@ class AudioHandlerService {
       album: mediaItem.album ?? 'Unknown Album',
       imageUrl: mediaItem.artUri?.toString() ?? '',
       mediaUrl: mediaItem.extras?['url'] as String? ?? '',
+      albumUrl: mediaItem.extras?['albumUrl'] as String? ?? '',
     );
   }
 
@@ -117,9 +118,9 @@ class AudioHandlerService {
       title: song.name,
       artist: song.artists,
       album: song.album,
-      duration: Duration(seconds: int.parse(song.duration!)),
+      duration: Duration(seconds: int.parse(song.duration ??'500')),
       artUri: Uri.parse(song.imageUrl),
-      extras: {'url': song.mediaUrl},
+      extras: {'url': song.mediaUrl,"albumUrl":song.albumUrl},
       genre: song.genre,
     );
   }
@@ -167,34 +168,55 @@ class AudioHandlerService {
 
   // Play a list of songs (playlist)
   Future<void> playPlaylist(List<Song> songs, int initialIndex) async {
-  
-    if (songs.isEmpty) return;
+    try {
+      if (songs.isEmpty) return;
 
-    // Ensure the index is valid
-    final index = initialIndex.clamp(0, songs.length - 1);
-    final currentSong = songs[index];
+      // Ensure the index is valid
+      final index = initialIndex.clamp(0, songs.length - 1);
+      final currentSong = songs[index];
 
-    // Convert songs to media items
-    final mediaItems = songs.map(_convertSongToMediaItem).toList();
+      // Convert songs to media items
+      final mediaItems = songs.map(_convertSongToMediaItem).toList();
 
-    // Set the queue
-    await _audioHandler.updateQueue(mediaItems);
+      // Set the queue
+      await _audioHandler.updateQueue(mediaItems);
 
-    // Skip to the desired index
-    await _audioHandler.skipToQueueItem(index);
+      // Skip to the desired index
+      await _audioHandler.skipToQueueItem(index);
 
-    // Start playback
-    await _audioHandler.playMediaItem(mediaItems[index]);
+      // Start playback
+      await _audioHandler.play();
 
-    _updateState(
-      status: app_models.PlaybackStatus.loading,
-      currentSong: currentSong,
-      queue: songs,
-      currentIndex: index,
-      position: Duration.zero,
-    );
+      _updateState(
+        status: app_models.PlaybackStatus.loading,
+        currentSong: currentSong,
+        queue: songs,
+        currentIndex: index,
+        position: Duration.zero,
+      );
+    } catch (e) {
+      print('Error playing playlist: $e');
+    }
   }
 
+  Future<void> addAllToQueue(List<Song> songs) async {
+    try {
+      if (songs.isEmpty) return;
+
+      // Convert songs to media items
+      final mediaItems = songs.map(_convertSongToMediaItem).toList();
+
+      // Add to the queue
+      await _audioHandler.addQueueItems(mediaItems);
+
+      // Update the queue
+      final currentQueue = _playerState.queue ?? [];
+      final newQueue = [...currentQueue, ...songs];
+      _updateState(queue: newQueue);
+    } catch (e) {
+      print('Error adding songs to queue: $e');
+    }
+  }
   // Resume playback
   Future<void> play() async {
     await _audioHandler.play();
@@ -413,6 +435,12 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> addQueueItem(MediaItem mediaItem) async {
     final audioSource = _createAudioSource(mediaItem);
     await _playlist.add(audioSource);
+  }
+
+  @override
+  Future<void> addQueueItems(List<MediaItem> mediaItems) async {
+    final audioSources = mediaItems.map(_createAudioSource).toList();
+    await _playlist.addAll(audioSources);
   }
 
   // Override updateQueue method

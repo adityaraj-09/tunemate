@@ -1,6 +1,7 @@
 // lib/screens/music/music_screen.dart
 import 'package:app/screens/search_screen.dart';
 import 'package:app/services/di/service_locator.dart';
+import 'package:app/widgets/common/bottomsheet-menu.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/music_widgets.dart';
@@ -14,7 +15,6 @@ import '../../providers/music_player_provider.dart';
 import '../../services/api/music_api.dart';
 import '../../models/music/song.dart';
 
-
 class MusicScreen extends StatefulWidget {
   const MusicScreen({Key? key}) : super(key: key);
 
@@ -23,7 +23,7 @@ class MusicScreen extends StatefulWidget {
 }
 
 class _MusicScreenState extends State<MusicScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _isLoading = true;
   String? _error;
 
@@ -31,6 +31,7 @@ class _MusicScreenState extends State<MusicScreen>
   List<Playlist> _userPlaylists = [];
   Map<String, List<Song>> _genreSongs = {};
   List<String> _genres = [];
+  List<Song> _recommendedSongs = [];
 
   late TabController _tabController;
 
@@ -80,16 +81,17 @@ class _MusicScreenState extends State<MusicScreen>
       // Fetch data in parallel
       final results = await Future.wait([
         musicApi.getTrendingSongs(limit: 15),
-        musicApi.getUserPlaylists(),
-        musicApi.getTrendingByGenre(limit: 6),
+        // musicApi.getPersonalRecommendations(),
+
+        // musicApi.getTrendingByGenre(limit: 6),
       ]);
 
       if (mounted) {
         setState(() {
-          _recentlyPlayed = results[0] as List<Song>;
-          _userPlaylists = results[1] as List<Playlist>;
-          _genreSongs = results[2] as Map<String, List<Song>>;
-          _genres = _genreSongs.keys.toList();
+          _recentlyPlayed = results[0];
+          // _userPlaylists = [
+          //   Playlist(id: "For You", name: "For You", songs: results[1],imageUrl: results[1][0].imageUrl),
+          // ];
           _isLoading = false;
         });
       }
@@ -118,51 +120,90 @@ class _MusicScreenState extends State<MusicScreen>
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            // App bar with search and tabs
             SliverAppBar(
-              expandedHeight: 140.0,
+              expandedHeight: 160.0,
               floating: true,
               pinned: true,
-              backgroundColor: theme.scaffoldBackgroundColor,
+              backgroundColor: Colors.transparent,
               elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  padding: const EdgeInsets.only(
-                    top: 100.0,
-                    left: 16.0,
-                    right: 16.0,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.accentPurple.withOpacity(0.3),
-                        AppTheme.primaryColor.withOpacity(0.1),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+              flexibleSpace: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.accentPurple,
+                            AppTheme.accentPurple.withOpacity(0.7),
+                            AppTheme.accentPurple.withOpacity(0.3),
+                            Colors.white.withOpacity(0.1),
+                            Colors.white,
+                          ],
+                          stops: const [0.0, 0.3, 0.5, 0.65, 0.8, 1.0],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              title: Row(
-                children: [
-                  const Icon(
-                    Icons.music_note_rounded,
-                    color: AppTheme.primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Music',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
+                  FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor.withOpacity(0.9),
+                            AppTheme.accentPurple,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                    titlePadding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
+                    title: Container(
+                      margin: const EdgeInsets.only(bottom: 60),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.music_note_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Music',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.search, color: Colors.white),
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -171,30 +212,94 @@ class _MusicScreenState extends State<MusicScreen>
                     );
                   },
                 ),
+                const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.queue_music_outlined),
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.queue_music_outlined,
+                        color: Colors.white),
+                  ),
                   onPressed: () {
                     // Show queue
                   },
                 ),
+                const SizedBox(width: 12),
               ],
-              bottom: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                indicatorColor: AppTheme.primaryColor,
-                labelColor: AppTheme.primaryColor,
-                unselectedLabelColor: AppTheme.mutedGrey,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(68),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(
+                      top: 16, bottom: 12, left: 8, right: 8),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: List.generate(_tabs.length, (index) {
+                        final isSelected = _tabController.index == index;
+                        return GestureDetector(
+                          onTap: () {
+                            _tabController.animateTo(index);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              gradient: isSelected
+                                  ? LinearGradient(
+                                      colors: [
+                                        AppTheme.primaryColor,
+                                        AppTheme.accentPurple
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    )
+                                  : null,
+                              color: isSelected
+                                  ? null
+                                  : AppTheme.lightGrey.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: AppTheme.primaryColor
+                                            .withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      )
+                                    ]
+                                  : null,
+                            ),
+                            child: Text(
+                              _tabs[index],
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.mutedGrey,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 16,
-                ),
-                tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
               ),
-            ),
+            )
           ];
         },
         body: AnimatedBuilder(
@@ -324,9 +429,7 @@ class _MusicScreenState extends State<MusicScreen>
                         padding: const EdgeInsets.only(right: 16.0),
                         child: PlaylistCard(
                           playlist: _userPlaylists[index],
-                          onTap: () {
-                            
-                          },
+                          onTap: () {},
                         ),
                       );
                     },
@@ -356,9 +459,7 @@ class _MusicScreenState extends State<MusicScreen>
                     children: _genres.map((genre) {
                       return GenreBubble(
                         genre: genre,
-                        onTap: () {
-                        
-                        },
+                        onTap: () {},
                       );
                     }).toList(),
                   ),
@@ -387,6 +488,9 @@ class _MusicScreenState extends State<MusicScreen>
                   itemBuilder: (context, index) {
                     return MusicListTile(
                       song: _recentlyPlayed[index],
+                      onOptionsTap: () {
+                        showMenuSheet(context, _recentlyPlayed[index]);
+                      },
                       onTap: () => _playSong(_recentlyPlayed[index]),
                     );
                   },
@@ -526,9 +630,7 @@ class _MusicScreenState extends State<MusicScreen>
                                 child: PlaylistCard(
                                   playlist: _userPlaylists[index],
                                   isCompact: true,
-                                  onTap: () {
-                                    
-                                  },
+                                  onTap: () {},
                                 ),
                               ),
                             ),
@@ -598,9 +700,7 @@ class _MusicScreenState extends State<MusicScreen>
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () {
-                      
-                      },
+                      onTap: () {},
                       borderRadius: BorderRadius.circular(16.0),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),

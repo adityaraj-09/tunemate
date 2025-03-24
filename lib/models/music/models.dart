@@ -183,7 +183,28 @@ class Album {
       permalink: json['perma_url'] as String,
     );
   }
-
+ String get displayName => name ?? title;
+  
+  // Get total duration of the album
+  Duration get totalDuration {
+    return songs.fold(
+      Duration.zero,
+      (total, song) => total + Duration(seconds: int.parse(song.duration ?? '300')),
+    );
+  }
+  
+  // Get formatted release year
+  String get releaseYear {
+    try {
+      final date = DateTime.parse(releaseDate);
+      return date.year.toString();
+    } catch (e) {
+      return releaseDate; // Return as is if parsing fails
+    }
+  }
+  
+  // Get total number of songs
+  int get songCount => songs.length;
 }
 
 class Conversation {

@@ -88,7 +88,7 @@ class AudioPlayerService {
   Future<void> playSong(Song song) async {
     try {
       await _audioHandler.playSong(song);
-    await musicApi.listenSong(song.id,int.parse( song.duration ?? "180"));
+    await musicApi.listenSong(song,int.parse( song.duration ?? "180"));
     } catch (e) {
       _updateState(
         status: PlaybackStatus.error,
@@ -109,6 +109,10 @@ class AudioPlayerService {
         error: e.toString(),
       );
     }
+  }
+
+  Future<void> addToQueue(List<Song> songs) async {
+    await _audioHandler.addAllToQueue(songs);
   }
 
   // Resume playback

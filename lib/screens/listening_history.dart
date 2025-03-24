@@ -1,6 +1,7 @@
 // lib/screens/profile/listening_history_screen.dart
 import 'package:app/services/api/music_api.dart';
 import 'package:app/services/di/service_locator.dart';
+import 'package:app/widgets/common/bottomsheet-menu.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/music_widgets.dart';
@@ -13,7 +14,6 @@ import '../../config/theme.dart';
 import '../../providers/music_player_provider.dart';
 import '../../services/api/profile_api.dart';
 import '../../models/music/song.dart';
-
 
 class ListeningHistoryScreen extends StatefulWidget {
   const ListeningHistoryScreen({Key? key}) : super(key: key);
@@ -31,43 +31,44 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
   bool _hasMoreData = true;
   int _page = 0;
   final int _pageSize = 20;
-  
+
   @override
   void initState() {
     super.initState();
     _loadHistory();
     _scrollController.addListener(_onScroll);
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (!_isLoadingMore && _hasMoreData) {
         _loadMoreHistory();
       }
     }
   }
-  
+
   Future<void> _loadHistory() async {
     setState(() {
       _isLoading = true;
       _error = null;
       _page = 0;
     });
-    
+
     try {
-      final profileApi =getIt<ProfileApiService>();
+      final profileApi = getIt<ProfileApiService>();
       final history = await profileApi.getListeningHistory(
         limit: _pageSize,
         offset: 0,
       );
-      
+
       setState(() {
         _historyItems = history["history"];
         _isLoading = false;
@@ -81,21 +82,21 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
       });
     }
   }
-  
+
   Future<void> _loadMoreHistory() async {
     if (_isLoadingMore) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
-    
+
     try {
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
+      final profileApi = getIt<ProfileApiService>();
       final moreHistory = await profileApi.getListeningHistory(
         limit: _pageSize,
         offset: _page * _pageSize,
       );
-      
+
       setState(() {
         if (moreHistory["history"].isEmpty) {
           _hasMoreData = false;
@@ -115,12 +116,13 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
       );
     }
   }
-  
+
   void _playSong(Song song) {
-    final playerProvider = Provider.of<MusicPlayerProvider>(context, listen: false);
+    final playerProvider =
+        Provider.of<MusicPlayerProvider>(context, listen: false);
     playerProvider.playSong(song);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +142,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
               : _buildHistoryList(),
     );
   }
-  
+
   Widget _buildLoadingView() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -158,7 +160,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
       ),
     );
   }
-  
+
   Widget _buildHistoryList() {
     if (_historyItems.isEmpty) {
       return Center(
@@ -183,23 +185,24 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
         ),
       );
     }
-    
+
     // Group history by date
     final Map<String, List<dynamic>> groupedHistory = {};
-    
+
     for (final item in _historyItems) {
       final DateTime listenDate = DateTime.parse(item['lastPlayed']);
       final String dateKey = _getDateKey(listenDate);
-      
+
       if (!groupedHistory.containsKey(dateKey)) {
         groupedHistory[dateKey] = [];
       }
-      
+
       groupedHistory[dateKey]!.add(item);
     }
-    
-    final sortedDates = groupedHistory.keys.toList()..sort((a, b) => b.compareTo(a));
-    
+
+    final sortedDates = groupedHistory.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+
     return RefreshIndicator(
       onRefresh: _loadHistory,
       child: AnimationLimiter(
@@ -216,10 +219,10 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                 ),
               );
             }
-            
+
             final dateKey = sortedDates[index];
             final items = groupedHistory[dateKey]!;
-            
+
             return AnimationConfiguration.staggeredList(
               position: index,
               duration: const Duration(milliseconds: 375),
@@ -241,15 +244,19 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                       ),
                       ...items.map((item) {
                         final song = Song.fromJson(item['song']);
-                        final DateTime listenDate = DateTime.parse(item['lastPlayed']);
+                        final DateTime listenDate =
+                            DateTime.parse(item['lastPlayed']);
                         final bool completed = item['completed'] ?? false;
-                        
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Stack(
                             children: [
                               MusicListTile(
                                 song: song,
+                                onOptionsTap: () {
+                                  showMenuSheet(context, song);
+                                },
                                 onTap: () => _playSong(song),
                               ),
                               Positioned(
@@ -300,16 +307,16 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
       ),
     );
   }
-  
+
   String _getDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-  
+
   String _formatDateHeader(String dateKey) {
     final now = DateTime.now();
     final today = _getDateKey(now);
     final yesterday = _getDateKey(now.subtract(const Duration(days: 1)));
-    
+
     if (dateKey == today) {
       return 'Today';
     } else if (dateKey == yesterday) {
@@ -320,8 +327,6 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
     }
   }
 }
-
-
 
 class FavoriteSongsScreen extends StatefulWidget {
   const FavoriteSongsScreen({Key? key}) : super(key: key);
@@ -334,23 +339,23 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _favoriteSongs = [];
-  
+
   @override
   void initState() {
     super.initState();
     _loadFavorites();
   }
-  
+
   Future<void> _loadFavorites() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-    
+
     try {
       final profileApi = getIt<ProfileApiService>();
       final favorites = await profileApi.getFavoriteSongs();
-      
+
       setState(() {
         _favoriteSongs = favorites;
         _isLoading = false;
@@ -362,16 +367,21 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
       });
     }
   }
-  
+
   void _playSong(int index) {
-    final playerProvider = Provider.of<MusicPlayerProvider>(context, listen: false);
+    final playerProvider =
+        Provider.of<MusicPlayerProvider>(context, listen: false);
     playerProvider.playPlaylist(
-      Playlist(id: "liked", name: "Liked Songs", songs: _favoriteSongs.map((item) => Song.fromJson(item["song"])).toList()),
+      Playlist(
+          id: "liked",
+          name: "Liked Songs",
+          songs: _favoriteSongs
+              .map((item) => Song.fromJson(item["song"]))
+              .toList()),
       index,
-      
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -391,7 +401,7 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
               : _buildFavoritesList(),
     );
   }
-  
+
   Widget _buildLoadingView() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -409,7 +419,7 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
       ),
     );
   }
-  
+
   Widget _buildFavoritesList() {
     if (_favoriteSongs.isEmpty) {
       return Center(
@@ -434,7 +444,7 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
         ),
       );
     }
-    
+
     return RefreshIndicator(
       onRefresh: _loadFavorites,
       child: AnimationLimiter(
@@ -443,7 +453,7 @@ class _FavoriteSongsScreenState extends State<FavoriteSongsScreen> {
           itemCount: _favoriteSongs.length,
           itemBuilder: (context, index) {
             final song = Song.fromJson(_favoriteSongs[index]["song"]);
-            
+
             return AnimationConfiguration.staggeredList(
               position: index,
               duration: const Duration(milliseconds: 375),

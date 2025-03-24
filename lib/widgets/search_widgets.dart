@@ -1,4 +1,5 @@
 // lib/widgets/search/search_result_tile.dart
+import 'package:app/models/music/song.dart';
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 
@@ -7,7 +8,9 @@ class SearchResultTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? imageUrl;
+  final Song? song;
   final VoidCallback onTap;
+  final VoidCallback? openMenu;
 
   const SearchResultTile({
     Key? key,
@@ -16,77 +19,82 @@ class SearchResultTile extends StatelessWidget {
     required this.subtitle,
     this.imageUrl,
     required this.onTap,
+    this.song,
+    this.openMenu,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // Thumbnail or avatar
-                if (imageUrl != null) ...[
-                  _buildThumbnail(),
-                  const SizedBox(width: 16),
-                ],
-                
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          _buildTypeIcon(),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              subtitle,
-                              style: TextStyle(
-                                color: AppTheme.mutedGrey,
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Thumbnail or avatar
+                  if (imageUrl != null) ...[
+                    _buildThumbnail(),
+                    const SizedBox(width: 16),
+                  ],
+                  
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                        ],
-                      ),
-                    ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _buildTypeIcon(),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                subtitle,
+                                style: TextStyle(
+                                  color: AppTheme.mutedGrey,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                
-                // Action button
-                _buildActionButton(),
-              ],
+                  
+                  // Action button
+                  _buildActionButton(),
+                ],
+              ),
             ),
           ),
         ),
@@ -196,11 +204,11 @@ class SearchResultTile extends StatelessWidget {
       default:
         return IconButton(
           icon: Icon(
-            Icons.play_circle_fill,
+            Icons.more_horiz,
             color: AppTheme.primaryColor,
             size: 32,
           ),
-          onPressed: onTap,
+          onPressed: openMenu,
         );
     }
   }

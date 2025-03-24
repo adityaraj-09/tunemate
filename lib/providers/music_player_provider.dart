@@ -62,6 +62,8 @@ class MusicPlayerProvider with ChangeNotifier {
   Future<void> playSong(Song song) async {
     await _audioService.playSong(song);
     _isMiniPlayerVisible = true;
+  
+
     notifyListeners();
   }
 
@@ -74,11 +76,8 @@ class MusicPlayerProvider with ChangeNotifier {
   }
 
   // Add song to queue
-  void addToQueue(Song song) {
-    final currentQueue = List<Song>.from(_playerState.queue);
-    currentQueue.add(song);
-
-    _audioService.updateState(queue: currentQueue);
+  void addToQueue(List<Song> song) {
+  _audioService.addToQueue(song);
     notifyListeners();
   }
 

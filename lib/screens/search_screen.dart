@@ -1,6 +1,9 @@
 // lib/screens/search/search_screen.dart
+import 'package:app/routes/router.dart';
+import 'package:app/screens/splash.dart';
 import 'package:app/services/di/service_locator.dart';
 import 'package:app/services/search_history.dart';
+import 'package:app/widgets/common/bottomsheet-menu.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/search_widgets.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +14,7 @@ import '../../config/theme.dart';
 import '../../providers/music_player_provider.dart';
 import '../../models/music/song.dart';
 import '../../services/api/music_api.dart';
-
+import 'package:go_router/go_router.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -20,21 +23,22 @@ class SearchScreen extends StatefulWidget {
   _SearchScreenState createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderStateMixin {
+class _SearchScreenState extends State<SearchScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final SearchHistoryService _searchHistoryService = SearchHistoryService();
-  
+
   Timer? _debounce;
   bool _isLoading = false;
   String _searchQuery = '';
   Map<String, dynamic> _searchResults = {};
   List<String> _recentSearches = [];
   bool _isLoadingHistory = true;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -49,18 +53,18 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         curve: Curves.easeOut,
       ),
     );
-    
+
     _animationController.forward();
-    
+
     // Load search history from local storage
     _loadSearchHistory();
-    
+
     // Focus search field automatically
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
     });
   }
-  
+
   @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
@@ -75,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     setState(() {
       _isLoadingHistory = true;
     });
-    
+
     try {
       final history = await _searchHistoryService.getSearchHistory();
       setState(() {
@@ -89,11 +93,12 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       });
     }
   }
-  
+
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (_searchController.text.isNotEmpty && _searchController.text != _searchQuery) {
+      if (_searchController.text.isNotEmpty &&
+          _searchController.text != _searchQuery) {
         _performSearch(_searchController.text);
       } else if (_searchController.text.isEmpty) {
         setState(() {
@@ -103,31 +108,31 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       }
     });
   }
-  
+
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) return;
-    
+
     setState(() {
       _isLoading = true;
       _searchQuery = query;
     });
-    
+
     try {
       final musicApi = getIt<MusicApiService>();
       final results = await musicApi.search(query);
-      
+
       if (mounted) {
         setState(() {
           _searchResults = results;
           _isLoading = false;
         });
-        
-        // Save to search history if results were found
-        if (_hasResults(results)) {
-          await _searchHistoryService.saveSearchQuery(query);
-          // Refresh history
-          await _loadSearchHistory();
-        }
+
+        // // Save to search history if results were found
+        // if (_hasResults(results)) {
+        //   await _searchHistoryService.saveSearchQuery(query);
+        //   // Refresh history
+        //   await _loadSearchHistory();
+        // }
       }
     } catch (e) {
       if (mounted) {
@@ -140,20 +145,22 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       }
     }
   }
-  
+
   bool _hasResults(Map<String, dynamic> results) {
     final songs = results['songs'] as List<Song>? ?? [];
     final artists = results['artists'] as List<dynamic>? ?? [];
     final albums = results['albums'] as List<dynamic>? ?? [];
-    
+
     return songs.isNotEmpty || artists.isNotEmpty || albums.isNotEmpty;
   }
-  
-  void _playSong(Song song) {
-    final playerProvider = Provider.of<MusicPlayerProvider>(context, listen: false);
+
+  void _playSong(Song song) async {
+    final playerProvider =
+        Provider.of<MusicPlayerProvider>(context, listen: false);
     playerProvider.playSong(song);
+    await _searchHistoryService.saveSearchQuery(song.name);
   }
-  
+
   void _clearSearch() {
     _searchController.clear();
     setState(() {
@@ -161,26 +168,32 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       _searchResults = {};
     });
   }
-  
+
   void _onRecentSearchTap(String query) {
     _searchController.text = query;
     _performSearch(query);
   }
-  
+
+  Future<List<Song>> getSimilarSongs(Song song) async {
+    final musicApi = getIt<MusicApiService>();
+    final songs = await musicApi.getNextSongs(song.id);
+    return songs;
+  }
+
   Future<void> _clearRecentSearches() async {
     await _searchHistoryService.clearSearchHistory();
     _loadSearchHistory();
   }
-  
+
   Future<void> _removeSearchQuery(String query) async {
     await _searchHistoryService.removeSearchQuery(query);
     _loadSearchHistory();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
@@ -241,7 +254,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildLoadingView() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -268,7 +281,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildRecentSearches() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -281,8 +294,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               Text(
                 'Recent Searches',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               if (_recentSearches.isNotEmpty)
                 TextButton(
@@ -332,8 +345,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                                 child: FadeInAnimation(
                                   child: RecentSearchTile(
                                     query: _recentSearches[index],
-                                    onTap: () => _onRecentSearchTap(_recentSearches[index]),
-                                    onDelete: () => _removeSearchQuery(_recentSearches[index]),
+                                    onTap: () => _onRecentSearchTap(
+                                        _recentSearches[index]),
+                                    onDelete: () => _removeSearchQuery(
+                                        _recentSearches[index]),
                                   ),
                                 ),
                               ),
@@ -346,12 +361,12 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildSearchResults() {
     final songs = _searchResults['songs'] as List<Song>? ?? [];
     final artists = _searchResults['artists'] as List<dynamic>? ?? [];
     final albums = _searchResults['albums'] as List<dynamic>? ?? [];
-    
+
     if (songs.isEmpty && artists.isEmpty && albums.isEmpty) {
       return Center(
         child: Column(
@@ -374,7 +389,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         ),
       );
     }
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: AnimationLimiter(
@@ -386,8 +401,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               Text(
                 'Songs',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
               ListView.builder(
@@ -403,10 +418,22 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                       child: FadeInAnimation(
                         child: SearchResultTile(
                           type: 'song',
+                          song: songs[index],
                           title: songs[index].name,
                           subtitle: songs[index].artists,
                           imageUrl: songs[index].imageUrl,
-                          onTap: () => _playSong(songs[index]),
+                          onTap: () async{
+                            _playSong(songs[index]);
+                            List<Song> similarSongs = await getSimilarSongs(songs[index]);
+                            if (similarSongs.isNotEmpty) {
+                              final playerProvider =
+                                  Provider.of<MusicPlayerProvider>(context, listen: false);
+                              playerProvider.addToQueue(similarSongs);
+                            }
+                          },
+                          openMenu: () {
+                            showMenuSheet(context, songs[index]);
+                          },
                         ),
                       ),
                     ),
@@ -415,14 +442,14 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               ),
               const SizedBox(height: 24),
             ],
-            
+
             // Artists section
             if (artists.isNotEmpty) ...[
               Text(
                 'Artists',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
               ListView.builder(
@@ -453,14 +480,14 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               ),
               const SizedBox(height: 24),
             ],
-            
+
             // Albums section
             if (albums.isNotEmpty) ...[
               Text(
                 'Albums',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
               ListView.builder(
@@ -480,9 +507,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                           title: album['name'],
                           subtitle: album['artist'],
                           imageUrl: album['imageUrl'],
-                          onTap: () {
-                            // Navigate to album page
-                          },
+                          onTap: () {},
                         ),
                       ),
                     ),
@@ -490,7 +515,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 },
               ),
             ],
-            
+
             // Space at bottom
             const SizedBox(height: 100),
           ],

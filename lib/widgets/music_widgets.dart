@@ -331,12 +331,14 @@ class MusicListTile extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
   final bool showThumbnail;
+  final VoidCallback onOptionsTap;
 
   const MusicListTile({
     Key? key,
     required this.song,
     required this.onTap,
     this.showThumbnail = true,
+    required this.onOptionsTap,
   }) : super(key: key);
 
   @override
@@ -419,10 +421,13 @@ class MusicListTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 
                 // More button
-                Icon(
-                  Icons.more_vert,
-                  color: AppTheme.mutedGrey,
-                  size: 20,
+                InkWell(
+                  onTap: onOptionsTap,
+                  child: Icon(
+                    Icons.more_vert,
+                    color: AppTheme.mutedGrey,
+                    size: 20,
+                  ),
                 ),
               ],
             ),
