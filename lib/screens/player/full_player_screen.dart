@@ -634,6 +634,7 @@ class FullPlayerScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
@@ -641,7 +642,7 @@ class FullPlayerScreen extends StatelessWidget {
         minChildSize: 0.5,
         builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
-            color: AppTheme.darkGrey,
+            color: Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(

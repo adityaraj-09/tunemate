@@ -89,9 +89,7 @@ class _MusicScreenState extends State<MusicScreen>
       if (mounted) {
         setState(() {
           _recentlyPlayed = results[0];
-          // _userPlaylists = [
-          //   Playlist(id: "For You", name: "For You", songs: results[1],imageUrl: results[1][0].imageUrl),
-          // ];
+          
           _isLoading = false;
         });
       }
@@ -179,9 +177,9 @@ class _MusicScreenState extends State<MusicScreen>
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
+                          const Text(
                             'Music',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -198,8 +196,8 @@ class _MusicScreenState extends State<MusicScreen>
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(68),
                 child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
                     ),
@@ -223,7 +221,7 @@ class _MusicScreenState extends State<MusicScreen>
                                 horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
                               gradient: isSelected
-                                  ? LinearGradient(
+                                  ? const LinearGradient(
                                       colors: [
                                         AppTheme.primaryColor,
                                         AppTheme.accentPurple
@@ -733,8 +731,8 @@ class _MusicScreenState extends State<MusicScreen>
               scrollDirection: Axis.horizontal,
               itemCount: 5,
               itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
+                return const Padding(
+                  padding: EdgeInsets.only(right: 16.0),
                   child: ShimmerLoading(
                     height: 180.0,
                     width: 140.0,
@@ -757,8 +755,8 @@ class _MusicScreenState extends State<MusicScreen>
               scrollDirection: Axis.horizontal,
               itemCount: 4,
               itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
+                return const Padding(
+                  padding: EdgeInsets.only(right: 16.0),
                   child: ShimmerLoading(
                     height: 160.0,
                     width: 160.0,

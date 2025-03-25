@@ -1,5 +1,7 @@
 // lib/services/music/audio_handler_service.dart
 import 'dart:async';
+import 'package:app/services/api/music_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -26,6 +28,7 @@ class AudioHandlerService {
   // State tracking
   app_models.PlayerState _playerState = app_models.PlayerState();
   app_models.PlayerState get playerState => _playerState;
+  String? _lastPlayedSongId;
 
   // Initialize the audio handler
   Future<void> init() async {
@@ -50,7 +53,7 @@ class AudioHandlerService {
 
     // Listen for playback state changes
     _audioHandler.playbackState.listen((playbackState) {
-      print("playback state" + playbackState.position.inSeconds.toString());
+  
       _updateStateFromPlaybackState(playbackState);
     });
 
@@ -62,9 +65,30 @@ class AudioHandlerService {
 
   // Update state from media item
   void _updateStateFromMediaItem(MediaItem mediaItem) {
-    final song = _convertMediaItemToSong(mediaItem);
+   final song = _convertMediaItemToSong(mediaItem);
     _updateState(currentSong: song);
+  // Check if this is a different song than the last one
+  if (_lastPlayedSongId != song.id) {
+    // Save the last song ID
+    final previousSongId = _lastPlayedSongId;
+    _lastPlayedSongId = song.id;
+    
+    // This is a song change - could be auto or user-triggered
+    _onSongChanged(song, previousSongId);
+    
   }
+  
+
+  }
+
+  void _onSongChanged(Song newSong, String? previousSongId) async{
+  print('Song changed to: ${newSong.name}');
+final api=getIt<MusicApiService>();
+  await api.listenSong(newSong, int.parse(newSong.duration ??"300"));
+  }
+
+
+
 
   // Update state from playback state
   void _updateStateFromPlaybackState(PlaybackState playbackState) {
@@ -88,6 +112,7 @@ class AudioHandlerService {
     _updateState(
       status: status,
       position: playbackState.position,
+    
       isShuffled: playbackState.shuffleMode == AudioServiceShuffleMode.all,
     );
   }
@@ -138,16 +163,17 @@ class AudioHandlerService {
     String? error,
   }) {
     _playerState = _playerState.copyWith(
-      status: status,
-      currentSong: currentSong,
-      queue: queue,
-      currentIndex: currentIndex,
-      position: position,
-      duration: duration,
-      volume: volume,
-      isShuffled: isShuffled,
-      error: error,
+      status: status ?? _playerState.status,
+      currentSong: currentSong ?? _playerState.currentSong,
+      queue: queue ?? _playerState.queue,
+      currentIndex: currentIndex ?? _playerState.currentIndex,
+      position: position ?? _playerState.position,
+      duration: duration ?? _playerState.duration,
+      volume: volume ?? _playerState.volume,
+      isShuffled: isShuffled ?? _playerState.isShuffled,
+      error: error ?? _playerState.error,
     );
+  
 
     _playerStateController.add(_playerState);
   }
@@ -248,12 +274,9 @@ class AudioHandlerService {
 
   // Skip to previous song
   Future<void> previous() async {
-    // If we're more than 3 seconds into the song, restart it
-    if (_playerState.position.inSeconds > 3) {
-      await _audioHandler.seek(Duration.zero);
-    } else {
+  
       await _audioHandler.skipToPrevious();
-    }
+    
   }
 
   // Set volume (0.0 to 1.0)

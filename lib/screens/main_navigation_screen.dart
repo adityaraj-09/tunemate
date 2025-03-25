@@ -138,7 +138,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             children: [
               _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
               _buildNavItem(
-                  1, Icons.music_note_outlined, Icons.search, 'Music'),
+                  1, Icons.search, Icons.search, 'Music'),
               const SizedBox(width: 40), // Space for FAB
               _buildNavItem(
                   2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Matches'),
