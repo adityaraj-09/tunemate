@@ -42,7 +42,7 @@ class MusicPlayerProvider with ChangeNotifier {
 
   // Handle player state changes
   void _onPlayerStateChanged(PlayerState state) {
-    print('Player state changed: ${state.currentSong?.toJson() ??''}');
+    
     _playerState = state;
 
     // Auto-show mini player when a song is playing

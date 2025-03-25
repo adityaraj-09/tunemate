@@ -198,10 +198,7 @@ class _SearchScreenState extends State<SearchScreen>
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+      
         title: AnimatedBuilder(
           animation: _fadeAnimation,
           builder: (context, child) {

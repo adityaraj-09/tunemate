@@ -194,41 +194,7 @@ class _MusicScreenState extends State<MusicScreen>
                   ),
                 ],
               ),
-              actions: [
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.search, color: Colors.white),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SearchScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.queue_music_outlined,
-                        color: Colors.white),
-                  ),
-                  onPressed: () {
-                    // Show queue
-                  },
-                ),
-                const SizedBox(width: 12),
-              ],
+              
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(68),
                 child: Container(
@@ -249,6 +215,7 @@ class _MusicScreenState extends State<MusicScreen>
                         return GestureDetector(
                           onTap: () {
                             _tabController.animateTo(index);
+                            setState(() {});
                           },
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6),

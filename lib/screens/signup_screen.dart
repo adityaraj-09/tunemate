@@ -1,11 +1,12 @@
 // lib/screens/auth/sign_up_screen.dart
+import 'package:app/routes/router.dart';
 import 'package:app/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth_widgets.dart';
-
+import 'package:go_router/go_router.dart';
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/signup';
   
@@ -191,6 +192,8 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
           backgroundColor: AppTheme.accentPurple,
         ),
       );
+
+      context.go("/");
       
     }
     

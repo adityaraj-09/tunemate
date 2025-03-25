@@ -1,4 +1,5 @@
 // lib/providers/auth_provider.dart
+import 'package:app/services/search_history.dart';
 import 'package:flutter/foundation.dart';
 import '../services/api/auth_api.dart';
 import '../services/storage/secure_storage.dart';
@@ -183,6 +184,8 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       print('Error during logout: $e');
     } finally {
+      await SearchHistoryService().clearSearchHistory();
+
       await _storage.clearAll();
       _currentUser = null;
       _setUnauthenticated();

@@ -69,6 +69,20 @@ class AuthApiService {
     }
   }
 
+  Future<void> updatePassword(String email, String newPassword) async {
+    try {
+      await _dio.post(
+        '/api/auth/update',
+        data: {
+          'email': email,
+          'password': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Logout and invalidate tokens
   Future<void> logout(String refreshToken) async {
     try {

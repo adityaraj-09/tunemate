@@ -1,5 +1,6 @@
 // lib/screens/profile/profile_screen.dart
 import 'package:app/models/music/models.dart';
+import 'package:app/routes/router.dart';
 import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
 import 'package:app/screens/settings_screen.dart';
@@ -18,6 +19,7 @@ import '../../providers/music_player_provider.dart';
 import '../../services/api/profile_api.dart';
 import '../../models/auth/user.dart';
 import '../../models/music/song.dart';
+import 'package:go_router/go_router.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -335,32 +337,32 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           const SizedBox(height: 24),
                           
                           // Stats row
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              ProfileStat(
-                                title: 'Matches',
-                                value: '32',
-                                icon: Icons.favorite,
-                                color: Colors.white,
-                                light: true,
-                              ),
-                              ProfileStat(
-                                title: 'Songs',
-                                value: '145',
-                                icon: Icons.music_note,
-                                color: Colors.white,
-                                light: true,
-                              ),
-                              ProfileStat(
-                                title: 'Playlists',
-                                value: '7',
-                                icon: Icons.playlist_play,
-                                color: Colors.white,
-                                light: true,
-                              ),
-                            ],
-                          ),
+                          // const Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          //   children: [
+                          //     ProfileStat(
+                          //       title: 'Matches',
+                          //       value: '32',
+                          //       icon: Icons.favorite,
+                          //       color: Colors.white,
+                          //       light: true,
+                          //     ),
+                          //     ProfileStat(
+                          //       title: 'Songs',
+                          //       value: '145',
+                          //       icon: Icons.music_note,
+                          //       color: Colors.white,
+                          //       light: true,
+                          //     ),
+                          //     ProfileStat(
+                          //       title: 'Playlists',
+                          //       value: '7',
+                          //       icon: Icons.playlist_play,
+                          //       color: Colors.white,
+                          //       light: true,
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                     ),
@@ -428,24 +430,24 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               const SizedBox(height: 32),
                               
                               // Music taste
-                              Text(
-                                'My Music Taste',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              // Text(
+                              //   'My Music Taste',
+                              //   style: theme.textTheme.titleLarge?.copyWith(
+                              //     fontWeight: FontWeight.bold,
+                              //   ),
+                              // ),
                               
-                              const SizedBox(height: 16),
+                              // const SizedBox(height: 16),
                               
-                              // Genre chart
-                              _musicTaste == null
-                                ? const ShimmerLoading(height: 220)
-                                : SizedBox(
-                                    height: 220,
-                                    child: MusicTasteChart(musicTaste: _musicTaste!),
-                                  ),
+                              // // Genre chart
+                              // _musicTaste == null
+                              //   ? const ShimmerLoading(height: 220)
+                              //   : SizedBox(
+                              //       height: 220,
+                              //       child: MusicTasteChart(musicTaste: _musicTaste!),
+                              //     ),
                               
-                              const SizedBox(height: 32),
+                              // const SizedBox(height: 32),
                               
                               // Favorite songs
                               Row(
@@ -477,51 +479,76 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               const SizedBox(height: 32),
                               
                               // Listening history
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Recent Activity',
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const ListeningHistoryScreen()),
-                                      );
-                                    },
-                                    child: const Text('See All'),
-                                  ),
-                                ],
-                              ),
+                              // Row(
+                              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              //   children: [
+                              //     Text(
+                              //       'History',
+                              //       style: theme.textTheme.titleLarge?.copyWith(
+                              //         fontWeight: FontWeight.bold,
+                              //       ),
+                              //     ),
+                              //     TextButton(
+                              //       onPressed: () {
+                              //         Navigator.push(
+                              //           context,
+                              //           MaterialPageRoute(builder: (context) => const ListeningHistoryScreen()),
+                              //         );
+                              //       },
+                              //       child: const Text('See All'),
+                              //     ),
+                              //   ],
+                              // ),
                               
-                              const SizedBox(height: 16),
+                              // const SizedBox(height: 16),
                               
-                              // Activity list
-                              _buildRecentActivityList(),
+                              // // Activity list
+                              // _buildRecentActivityList(),
                               
                               // Settings button
-                              const SizedBox(height: 32),
-                              
-                              OutlinedButton.icon(
-                                onPressed: () {
+                              // const SizedBox(height: 32),
+                              ListTile(
+                                title: const Text('Settings'),
+                                leading: const Icon(Icons.settings),
+                                onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (context) => const SettingsScreen()),
                                   );
                                 },
+                              ),  ListTile(
+                                title: const Text('Listening History'),
+                                leading: const Icon(Icons.history),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ListeningHistoryScreen()),
+                                  );
+                                },
+                              ),
+                            
+                              OutlinedButton.icon(
+
+                                onPressed: ()async {
+                                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                await  authProvider.signOut();
+                                
+                              context.pushReplacement("/login");
+
+                                },
                                 icon: const Icon(Icons.settings),
-                                label: const Text('Settings'),
+                                label: const Text('Log Out'),
                                 style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                  iconColor: Colors.red,
                                   minimumSize: const Size(double.infinity, 50),
                                 ),
                               ),
                               
                               // Space at bottom for mini player
                               const SizedBox(height: 100),
+
+
                             ],
                           ),
                         ),

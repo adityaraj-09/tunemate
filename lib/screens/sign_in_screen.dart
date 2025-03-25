@@ -1,6 +1,8 @@
 // lib/screens/auth/sign_in_screen.dart
 import 'package:app/routes/router.dart';
 import 'package:app/screens/signup_screen.dart';
+import 'package:app/services/api/auth_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -257,7 +259,11 @@ class _SignInScreenState extends State<SignInScreen>
                               ],
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                // final authapi = getIt<AuthApiService>();
+                                // await authapi.updatePassword(
+                                //     "adi.ee.iitd@gmail.com", "Aditya@2004");
+                              },
                               child: const Text('Forgot Password?'),
                             ),
                           ],

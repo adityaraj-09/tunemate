@@ -113,6 +113,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     final playerProvider =
         Provider.of<MusicPlayerProvider>(context, listen: false);
     playerProvider.playSong(song);
+    playerProvider.addToQueue(_album!.songs);
   }
 
   void _playAlbum() {
