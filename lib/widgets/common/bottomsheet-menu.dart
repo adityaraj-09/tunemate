@@ -11,6 +11,7 @@ void showMenuSheet(BuildContext context, Song song) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    isDismissible: true,
     backgroundColor: Colors.transparent,
     builder: (context) => DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -77,7 +78,7 @@ void showMenuSheet(BuildContext context, Song song) {
                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content:
-                                          Text('Add to Queue'),
+                                          Text('Added to Queue'),
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );

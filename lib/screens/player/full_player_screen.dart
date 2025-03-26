@@ -24,13 +24,12 @@ class FullPlayerScreen extends StatelessWidget {
     final musicApi = getIt<MusicApiService>();
     final playerState = playerProvider.playerState;
     final currentSong = playerState.currentSong;
-    print("currentSong: ${currentSong!.toJson()}");
+  
     if (currentSong == null || !playerProvider.isFullScreenPlayerVisible) {
       return const SizedBox.shrink();
     }
 
     final size = MediaQuery.of(context).size;
-    final safeArea = MediaQuery.of(context).padding;
 
     return Scaffold(
       body: GestureDetector(
@@ -107,7 +106,7 @@ class FullPlayerScreen extends StatelessWidget {
                         child: VinylRecord(
                           albumArt: currentSong.imageUrl,
                           isPlaying: playerState.isPlaying,
-                          size: size.width * 0.75,
+                          size: size.width * 0.6,
                         ),
                       ),
                     ),
@@ -659,7 +658,7 @@ class FullPlayerScreen extends StatelessWidget {
               Text(
                 song.name,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.primaryVariantColor,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -667,7 +666,7 @@ class FullPlayerScreen extends StatelessWidget {
               Text(
                 song.artists,
                 style: const TextStyle(
-                  color: Colors.white70,
+                  color: AppTheme.primaryColor,
                   fontSize: 16,
                 ),
               ),

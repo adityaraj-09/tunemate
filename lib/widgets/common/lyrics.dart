@@ -1,3 +1,4 @@
+import 'package:app/config/theme.dart';
 import 'package:flutter/material.dart';
 
 class LyricsDisplay extends StatelessWidget {
@@ -26,7 +27,7 @@ class LyricsDisplay extends StatelessWidget {
           child: Text(
             line.trim(),
             style: const TextStyle(
-              color: Colors.white,
+              color: AppTheme.accentPurple,
               fontSize: 18,
               height: 1.5,
               letterSpacing: 0.5,

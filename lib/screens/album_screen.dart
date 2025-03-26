@@ -109,22 +109,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     }
   }
 
-  void _playSong(Song song) {
+  void _playSong(int index) {
     final playerProvider =
         Provider.of<MusicPlayerProvider>(context, listen: false);
-    playerProvider.playSong(song);
-    playerProvider.addToQueue(_album!.songs);
+  playerProvider.playPlaylist(Playlist(id:_album!.title , name: _album!.title, songs: _album!.songs), index);
   }
 
   void _playAlbum() {
-    if (_album == null || _album!.songs.isEmpty) return;
+  
 
     final playerProvider =
         Provider.of<MusicPlayerProvider>(context, listen: false);
-        playerProvider.playSong(_album!.songs[0]);
-        playerProvider.addToQueue(_album!.songs);
-    // playerProvider.playPlaylist(
-    //     Playlist(id: "album", name: _album!.title, songs: _album!.songs), 0);
+        playerProvider.playPlaylist(Playlist(id:_album!.title , name: _album!.title, songs: _album!.songs), 0);
   }
 
   String _formatDuration(Duration duration) {
@@ -465,7 +461,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         onOptionsTap: () {
                                           showMenuSheet(context, song);
                                         },
-                                        onTap: () => _playSong(song),
+                                        onTap: () => _playSong(index),
                                         showThumbnail: true,
                                         // Add track number
                                       ),
