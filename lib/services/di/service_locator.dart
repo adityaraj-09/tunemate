@@ -2,6 +2,7 @@
 import 'package:app/providers/music_player_provider.dart';
 import 'package:app/providers/preference_provider.dart';
 import 'package:app/services/api/music_api.dart';
+import 'package:app/services/api/playlist_api.dart';
 import 'package:app/services/api/profile_api.dart';
 import 'package:app/services/api/settings_api.dart';
 import 'package:app/services/music/audio_player_service.dart';
@@ -119,10 +120,10 @@ Future<void> setupDependencies() async {
 
   final audioHandlerService = AudioHandlerService();
   await audioHandlerService.init(); // Initialize it before registration
-  
+
   getIt.registerSingleton<AudioHandlerService>(audioHandlerService);
-  
-    getIt.registerLazySingleton<AudioPlayerService>(
+
+  getIt.registerLazySingleton<AudioPlayerService>(
     () => AudioPlayerService(getIt<AudioHandlerService>()),
   );
   getIt.registerLazySingleton<SearchHistoryService>(
@@ -135,6 +136,8 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<MusicApiService>(
       () => MusicApiService(getIt<Dio>()));
+  getIt.registerLazySingleton<PlaylistApiService>(
+      () => PlaylistApiService(getIt<Dio>()));
   getIt.registerLazySingleton<ProfileApiService>(
       () => ProfileApiService(getIt<Dio>()));
   getIt.registerLazySingleton<SettingsApiService>(

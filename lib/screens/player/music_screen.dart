@@ -1,7 +1,10 @@
 // lib/screens/music/music_screen.dart
+import 'package:app/screens/playlist_screen.dart';
 import 'package:app/screens/search_screen.dart';
+import 'package:app/services/api/playlist_api.dart';
 import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/common/bottomsheet-menu.dart';
+import 'package:app/widgets/common/create-playlist-dialog.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:app/widgets/music_widgets.dart';
@@ -77,10 +80,12 @@ class _MusicScreenState extends State<MusicScreen>
 
     try {
       final musicApi = getIt<MusicApiService>();
+      final playlistAPi=getIt<PlaylistApiService>();
 
       // Fetch data in parallel
       final results = await Future.wait([
         musicApi.getTrendingSongs(limit: 15),
+playlistAPi.getUserPlaylists()
         // musicApi.getPersonalRecommendations(),
 
         // musicApi.getTrendingByGenre(limit: 6),
@@ -88,8 +93,9 @@ class _MusicScreenState extends State<MusicScreen>
 
       if (mounted) {
         setState(() {
-          _recentlyPlayed = results[0];
-          
+          _recentlyPlayed = results[0] as List<Song>;
+          _userPlaylists = results[1] as List<Playlist>;
+      
           _isLoading = false;
         });
       }
@@ -192,7 +198,6 @@ class _MusicScreenState extends State<MusicScreen>
                   ),
                 ],
               ),
-              
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(68),
                 child: Container(
@@ -384,7 +389,7 @@ class _MusicScreenState extends State<MusicScreen>
                 const SizedBox(height: 16.0),
 
                 SizedBox(
-                  height: 180.0,
+                  height: 212.0,
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     scrollDirection: Axis.horizontal,
@@ -394,7 +399,17 @@ class _MusicScreenState extends State<MusicScreen>
                         padding: const EdgeInsets.only(right: 16.0),
                         child: PlaylistCard(
                           playlist: _userPlaylists[index],
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return PlaylistDetailScreen(
+                                    playlistId: _userPlaylists[index].id,
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
                       );
                     },
@@ -509,7 +524,9 @@ class _MusicScreenState extends State<MusicScreen>
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      // Show create playlist dialog
+                      showDialog(context: context, builder: (context) {
+                        return CreatePlaylistDialog();
+                      });
                     },
                     borderRadius: BorderRadius.circular(12.0),
                     child: Padding(

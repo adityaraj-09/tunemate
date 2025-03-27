@@ -73,6 +73,8 @@ class Playlist {
   final String? imageUrl;
   final List<Song> songs;
   final String? createdBy;
+  final int? totalSongs;
+
 
   Playlist({
     required this.id,
@@ -81,6 +83,7 @@ class Playlist {
     this.imageUrl,
     required this.songs,
     this.createdBy,
+    this.totalSongs,
   });
 
   factory Playlist.fromJson(Map<String, dynamic> json) {
@@ -89,11 +92,13 @@ class Playlist {
       name: json['name'] ?? '',
       description: json['description'],
       imageUrl: json['imageUrl'],
+
       songs: (json['songs'] as List?)
               ?.map((song) => Song.fromJson(song))
               .toList() ??
           [],
       createdBy: json['createdBy'],
+      totalSongs: json['songCount']??0,
     );
   }
 

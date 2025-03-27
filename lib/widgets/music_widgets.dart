@@ -247,7 +247,7 @@ class PlaylistCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: isCompact ? double.infinity : 160,
+        width: isCompact ? double.infinity : 140,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -307,7 +307,7 @@ class PlaylistCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${playlist.songs.length} songs',
+                    '${playlist.totalSongs} songs',
                     style: TextStyle(
                       color: AppTheme.mutedGrey,
                       fontSize: 14,
