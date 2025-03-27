@@ -1,5 +1,6 @@
 
 // lib/widgets/dialogs/create_playlist_dialog.dart
+import 'package:app/providers/music_provider.dart';
 import 'package:app/services/api/playlist_api.dart';
 import 'package:app/services/di/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -86,8 +87,10 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
         description: description,
         songIds: [],
       );
-      
+        var provider = Provider.of<MusicProvider>(context, listen: false);
+    provider.addPlaylist(playlist);
       Navigator.of(context).pop(playlist);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Playlist "$name" created successfully',),),
         

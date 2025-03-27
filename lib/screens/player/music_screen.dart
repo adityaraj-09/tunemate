@@ -1,4 +1,5 @@
 // lib/screens/music/music_screen.dart
+import 'package:app/providers/music_provider.dart';
 import 'package:app/screens/playlist_screen.dart';
 import 'package:app/screens/search_screen.dart';
 import 'package:app/services/api/playlist_api.dart';
@@ -90,7 +91,8 @@ playlistAPi.getUserPlaylists()
 
         // musicApi.getTrendingByGenre(limit: 6),
       ]);
-
+    var provider = Provider.of<MusicProvider>(context, listen: false);
+    provider.setPlaylists(results[1] as List<Playlist>);
       if (mounted) {
         setState(() {
           _recentlyPlayed = results[0] as List<Song>;
@@ -118,7 +120,7 @@ playlistAPi.getUserPlaylists()
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+var  provider=context.watch<MusicProvider>();
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
@@ -284,10 +286,10 @@ playlistAPi.getUserPlaylists()
             controller: _tabController,
             children: [
               // For You Tab
-              _buildForYouTab(),
+              _buildForYouTab(provider),
 
               // Playlists Tab
-              _buildPlaylistsTab(),
+              _buildPlaylistsTab(provider),
 
               // Genres Tab
               _buildGenresTab(),
@@ -301,7 +303,7 @@ playlistAPi.getUserPlaylists()
     );
   }
 
-  Widget _buildForYouTab() {
+  Widget _buildForYouTab(MusicProvider provider) {
     if (_isLoading) {
       return _buildLoadingView();
     }
@@ -393,18 +395,18 @@ playlistAPi.getUserPlaylists()
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     scrollDirection: Axis.horizontal,
-                    itemCount: _userPlaylists.length,
+                    itemCount: provider.playlists.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 16.0),
                         child: PlaylistCard(
-                          playlist: _userPlaylists[index],
+                          playlist: provider.playlists[index],
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) {
                                   return PlaylistDetailScreen(
-                                    playlistId: _userPlaylists[index].id,
+                                    playlistId: provider.playlists[index].id,
                                   );
                                 },
                               ),
@@ -416,47 +418,9 @@ playlistAPi.getUserPlaylists()
                   ),
                 ),
 
-                const SizedBox(height: 32.0),
+              
 
-                // Popular genres
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Popular Genres',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-
-                const SizedBox(height: 16.0),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Wrap(
-                    spacing: 12.0,
-                    runSpacing: 12.0,
-                    children: _genres.map((genre) {
-                      return GenreBubble(
-                        genre: genre,
-                        onTap: () {},
-                      );
-                    }).toList(),
-                  ),
-                ),
-
-                const SizedBox(height: 32.0),
-
-                // Popular songs list
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Popular Songs',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
+              
 
                 const SizedBox(height: 16.0),
 
@@ -485,7 +449,7 @@ playlistAPi.getUserPlaylists()
     );
   }
 
-  Widget _buildPlaylistsTab() {
+  Widget _buildPlaylistsTab(MusicProvider provider) {
     if (_isLoading) {
       return _buildLoadingView();
     }
@@ -496,6 +460,8 @@ playlistAPi.getUserPlaylists()
         onRetry: _loadData,
       );
     }
+    
+  
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -581,7 +547,7 @@ playlistAPi.getUserPlaylists()
 
               const SizedBox(height: 16.0),
 
-              _userPlaylists.isEmpty
+              provider.playlists.isEmpty
                   ? const Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.0),
@@ -600,7 +566,7 @@ playlistAPi.getUserPlaylists()
                       mainAxisSpacing: 16.0,
                       crossAxisSpacing: 16.0,
                       children: List.generate(
-                        _userPlaylists.length,
+                        provider.playlists.length,
                         (index) => StaggeredGridTile.fit(
                           crossAxisCellCount: 1,
                           child: AnimationConfiguration.staggeredGrid(
@@ -610,9 +576,19 @@ playlistAPi.getUserPlaylists()
                             child: ScaleAnimation(
                               child: FadeInAnimation(
                                 child: PlaylistCard(
-                                  playlist: _userPlaylists[index],
+                                  playlist: provider.playlists[index],
                                   isCompact: true,
-                                  onTap: () {},
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return PlaylistDetailScreen(
+                                            playlistId: provider.playlists[index].id,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),

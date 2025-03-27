@@ -1,5 +1,6 @@
 // lib/services/di/service_locator.dart
 import 'package:app/providers/music_player_provider.dart';
+import 'package:app/providers/music_provider.dart';
 import 'package:app/providers/preference_provider.dart';
 import 'package:app/services/api/music_api.dart';
 import 'package:app/services/api/playlist_api.dart';
@@ -153,7 +154,10 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<MusicPlayerProvider>(
     () => MusicPlayerProvider(),
+  );getIt.registerLazySingleton<MusicProvider>(
+    () => MusicProvider(),
   );
+
 }
 
 // List of providers to be used with MultiProvider
@@ -168,6 +172,8 @@ List<SingleChildWidget> get providers {
     ChangeNotifierProvider<MusicPreferencesProvider>(
       create: (_) => getIt<MusicPreferencesProvider>(),
     ),
+    ChangeNotifierProvider<MusicProvider>(create:
+        (_) => getIt<MusicProvider>()),
 
     // Add more providers here as needed
   ];

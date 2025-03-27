@@ -93,10 +93,13 @@ class Playlist {
       description: json['description'],
       imageUrl: json['imageUrl'],
 
-      songs: (json['songs'] as List?)
-              ?.map((song) => Song.fromJson(song))
-              .toList() ??
-          [],
+    songs: (json['songs'] is List)
+    ? (json['songs'] as List).first is String
+        // If the list contains strings (song IDs)
+        ?[]
+        // If the list contains song objects
+        : (json['songs'] as List).map((song) => Song.fromJson(song as Map<String, dynamic>)).toList()
+    : [], // Empty list if songs is not a List
       createdBy: json['createdBy'],
       totalSongs: json['songCount']??0,
     );

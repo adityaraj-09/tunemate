@@ -274,9 +274,9 @@ class PlaylistCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: AppTheme.primaryGradient,
                   ),
-                  child: playlist.imageUrl != null
+                  child: playlist.songs.isNotEmpty
                       ? Image.network(
-                          playlist.imageUrl!,
+                          playlist.songs[0].imageUrl,
                           fit: BoxFit.cover,
                         )
                       : Center(

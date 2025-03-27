@@ -170,10 +170,10 @@ final _playlistService=getIt<PlaylistApiService>();
       ),
       child: Stack(
         children: [
-          if (playlist.imageUrl != null && playlist.imageUrl!.isNotEmpty)
+          if (playlist.songs.isNotEmpty)
             Positioned.fill(
               child: CachedNetworkImage(
-                imageUrl: playlist.imageUrl!,
+                imageUrl: playlist.songs[0].imageUrl,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Theme.of(context).colorScheme.surface,
@@ -230,7 +230,7 @@ final _playlistService=getIt<PlaylistApiService>();
                     children: [
                     
                       Text(
-                        '${playlist.songs.length} songs',
+                        '${playlist.totalSongs} songs',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withOpacity(0.7),
                             ),

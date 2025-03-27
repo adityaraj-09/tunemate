@@ -1,6 +1,8 @@
+import 'package:app/config/theme.dart';
 import 'package:app/models/music/song.dart';
 import 'package:app/providers/music_player_provider.dart';
 import 'package:app/routes/router.dart';
+import 'package:app/widgets/common/add_to_playlist.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -76,12 +78,12 @@ void showMenuSheet(BuildContext context, Song song) {
                     var provider = Provider.of<MusicPlayerProvider>(context,listen: false);
                     provider.addToQueue([song]);
                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Added to Queue'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
+          SnackBar(
+            content: Text('Added to Queue'),
+            backgroundColor: AppTheme.primaryColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
                     Navigator.pop(context);
                   },
                 ),
@@ -90,9 +92,7 @@ void showMenuSheet(BuildContext context, Song song) {
                     leading: const Icon(Icons.album),
                     title: const Text('Go to Album'),
                     onTap: () {
-                      // Navigate to album
-                      Navigator.pop(context);
-                      print("Album URL: ${song.albumUrl}");
+                  
                       context.go("/album",
                           extra: AlbumScreenParams(albumUrl: song.albumUrl!));
                     },
@@ -101,8 +101,9 @@ void showMenuSheet(BuildContext context, Song song) {
                   leading: const Icon(Icons.playlist_add),
                   title: const Text('Add to Playlist'),
                   onTap: () {
-                    // Show playlist selection dialog
-                    Navigator.pop(context);
+                      Navigator.pop(context);
+                  showAddToPlaylistDialog(context, song);
+                  
                   },
                 ),
               ],
