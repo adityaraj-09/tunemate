@@ -173,7 +173,7 @@ class FullPlayerScreen extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
 
                           // Waveform visualization
                           // SizedBox(
@@ -311,7 +311,7 @@ class FullPlayerScreen extends StatelessWidget {
                             ],
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
 
                           // Bottom controls
                           Row(
