@@ -161,6 +161,7 @@ class Album {
   String releaseDate;
   List<Song> songs;
   String permalink;
+  String? artists;
 
   Album({
     required this.title,
@@ -169,6 +170,7 @@ class Album {
     required this.releaseDate,
     required this.songs,
     required this.permalink,
+    this.artists
   });
 
   factory Album.fromJson(Map<String, dynamic> json) {
@@ -176,23 +178,24 @@ class Album {
       title: json['title'] as String,
       name: json['name'] as String?,
       imageUrl: json['image'] as String,
-      releaseDate: json['release_date'] as String,
-      songs: (json['songs'] as List)
-          .map((song) => Song.fromJson(song))
-          .toList(),
+      releaseDate: json['release_date']??" " as String,
+      songs:
+          (json['songs'] as List).map((song) => Song.fromJson(song)).toList(),
       permalink: json['perma_url'] as String,
+      artists: json["primary_artists"]
     );
   }
- String get displayName => name ?? title;
-  
+  String get displayName => name ?? title;
+
   // Get total duration of the album
   Duration get totalDuration {
     return songs.fold(
       Duration.zero,
-      (total, song) => total + Duration(seconds: int.parse(song.duration ?? '300')),
+      (total, song) =>
+          total + Duration(seconds: int.parse(song.duration ?? '300')),
     );
   }
-  
+
   // Get formatted release year
   String get releaseYear {
     try {
@@ -202,7 +205,7 @@ class Album {
       return releaseDate; // Return as is if parsing fails
     }
   }
-  
+
   // Get total number of songs
   int get songCount => songs.length;
 }

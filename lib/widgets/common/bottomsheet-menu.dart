@@ -92,7 +92,7 @@ void showMenuSheet(BuildContext context, Song song) {
                     leading: const Icon(Icons.album),
                     title: const Text('Go to Album'),
                     onTap: () {
-                  
+                  Navigator.pop(context);
                       context.go("/album",
                           extra: AlbumScreenParams(albumUrl: song.albumUrl!));
                     },

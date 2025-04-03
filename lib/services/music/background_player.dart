@@ -258,7 +258,7 @@ final api=getIt<MusicApiService>();
     await _audioHandler.stop();
     _updateState(
       status: app_models.PlaybackStatus.stopped,
-      position: Duration.zero,
+  
     );
   }
 

@@ -2,7 +2,9 @@ import 'package:app/config/theme.dart';
 import 'package:app/models/music/song.dart';
 import 'package:app/services/api/playlist_api.dart';
 import 'package:app/services/di/service_locator.dart';
+import 'package:app/widgets/common/bottomsheet-menu.dart';
 import 'package:app/widgets/common/error_widgey.dart';
+import 'package:app/widgets/miniplayer.dart';
 import 'package:app/widgets/music_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -27,7 +29,7 @@ class PlaylistDetailScreen extends StatefulWidget {
 
 class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   late Future<Playlist> _playlistFuture;
-final _playlistService=getIt<PlaylistApiService>();
+  final _playlistService = getIt<PlaylistApiService>();
   final ScrollController _scrollController = ScrollController();
   bool _isHeaderCollapsed = false;
 
@@ -68,45 +70,53 @@ final _playlistService=getIt<PlaylistApiService>();
   void _playAllSongs(Playlist playlist, MusicPlayerProvider playerProvider) {
     if (playlist.songs.isEmpty) return;
 
+    playerProvider.playPlaylist(playlist);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<Playlist>(
-        future: _playlistFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.accentPurple,
-              ),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return ErrorView(
-              error: snapshot.error.toString(),
-              onRetry: () {
-                setState(() {
-                  _loadPlaylistData();
-                });
-              },
-            );
-          }
-
-          if (!snapshot.hasData) {
-            return  ErrorView(
-              error: "Playlist not found",
-              onRetry: (){
-
-              },
-            );
-          }
-
-          final playlist = snapshot.data!;
-          return _buildPlaylistDetail(context, playlist);
-        },
+      body: Stack(
+        children: [FutureBuilder<Playlist>(
+          future: _playlistFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.accentPurple,
+                ),
+              );
+            }
+        
+            if (snapshot.hasError) {
+              return ErrorView(
+                error: snapshot.error.toString(),
+                onRetry: () {
+                  setState(() {
+                    _loadPlaylistData();
+                  });
+                },
+              );
+            }
+        
+            if (!snapshot.hasData) {
+              return ErrorView(
+                error: "Playlist not found",
+                onRetry: () {},
+              );
+            }
+        
+            final playlist = snapshot.data!;
+            return _buildPlaylistDetail(context, playlist);
+          },
+        ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MiniPlayer(),
+          ),
+        ]
       ),
     );
   }
@@ -228,7 +238,6 @@ final _playlistService=getIt<PlaylistApiService>();
                   padding: const EdgeInsets.only(top: 12.0),
                   child: Row(
                     children: [
-                    
                       Text(
                         '${playlist.totalSongs} songs',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -269,14 +278,11 @@ final _playlistService=getIt<PlaylistApiService>();
             icon: const Icon(Icons.shuffle_rounded),
             onPressed: () {
               if (playlist.songs.isEmpty) return;
-            
             },
           ),
           IconButton(
             icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-            
-            },
+            onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.share),
@@ -305,15 +311,20 @@ final _playlistService=getIt<PlaylistApiService>();
         return MusicListTile(
           song: song,
           onTap: () {
-            
+            _playSong(index, playlist, context);
           },
           onOptionsTap: () {
-            
+            showMenuSheet(context, song);
           },
-        
         );
       },
     );
+  }
+
+  void _playSong(int index, Playlist pl, BuildContext context) {
+    final playerProvider =
+        Provider.of<MusicPlayerProvider>(context, listen: false);
+    playerProvider.playPlaylist(pl, index);
   }
 
   Future<bool?> _showDeleteConfirmationDialog(BuildContext context) {
@@ -345,8 +356,6 @@ final _playlistService=getIt<PlaylistApiService>();
       },
     );
   }
-
-
 
   void _showPlaylistOptionsModal(BuildContext context, Playlist playlist) {
     showModalBottomSheet(

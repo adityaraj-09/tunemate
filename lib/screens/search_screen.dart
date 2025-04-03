@@ -1,4 +1,5 @@
 // lib/screens/search/search_screen.dart
+import 'package:app/models/music/models.dart';
 import 'package:app/routes/router.dart';
 import 'package:app/screens/splash.dart';
 import 'package:app/services/di/service_locator.dart';
@@ -362,7 +363,7 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildSearchResults() {
     final songs = _searchResults['songs'] as List<Song>? ?? [];
     final artists = _searchResults['artists'] as List<dynamic>? ?? [];
-    final albums = _searchResults['albums'] as List<dynamic>? ?? [];
+    final albums = _searchResults['albums'] as List<Album>? ?? [];
 
     if (songs.isEmpty && artists.isEmpty && albums.isEmpty) {
       return Center(
@@ -501,10 +502,13 @@ class _SearchScreenState extends State<SearchScreen>
                       child: FadeInAnimation(
                         child: SearchResultTile(
                           type: 'album',
-                          title: album['name'],
-                          subtitle: album['artist'],
-                          imageUrl: album['imageUrl'],
-                          onTap: () {},
+                          title: album.title,
+                          subtitle: album.name!,
+                          imageUrl: album.imageUrl,
+                          onTap: () {
+                            context.go("/album",
+                          extra: AlbumScreenParams(albumUrl: album.permalink));
+                          },
                         ),
                       ),
                     ),

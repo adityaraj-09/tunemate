@@ -1,4 +1,5 @@
 // lib/services/api/music_api.dart
+import 'package:app/models/music/models.dart';
 import 'package:dio/dio.dart';
 import '../../models/music/song.dart';
 
@@ -174,7 +175,9 @@ class MusicApiService {
         }
 
         if (response.data['albums'] != null) {
-          result['albums'] = response.data['albums'];
+          result['albums'] = (response.data['albums'] as List)
+              .map((albumData) => Album.fromJson(albumData))
+              .toList();
         }
 
         return result;
