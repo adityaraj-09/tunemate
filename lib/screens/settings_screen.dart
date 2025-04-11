@@ -98,14 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
       ),
-      body: _isLoading
-          ? _buildLoadingView()
-          : _error != null
-              ? ErrorView(
-                  error: _error!,
-                  onRetry: _loadSettings,
-                )
-              : _buildSettingsList(),
+      body:_buildSettingsList(),
     );
   }
 

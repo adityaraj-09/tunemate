@@ -27,7 +27,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       MusicScreen(),
     SearchScreen(),
   
-    Container(),
+    HomeScreen(),
     ProfileScreen(),
   ];
 

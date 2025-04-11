@@ -1,5 +1,6 @@
 // lib/screens/home/home_screen.dart
 import 'package:app/screens/search_screen.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:app/widgets/home_widgets.dart';
 import 'package:flutter/material.dart';
@@ -78,9 +79,8 @@ class _HomeScreenState extends State<HomeScreen>
     });
 
     try {
-      final musicApi = Provider.of<MusicApiService>(context, listen: false);
-      final profileApi = Provider.of<ProfileApiService>(context, listen: false);
-
+      final musicApi = getIt<MusicApiService>();
+      final profileApi = getIt<ProfileApiService>();
       // Fetch data in parallel
       final results = await Future.wait([
         musicApi.getTrendingSongs(limit: 10),
