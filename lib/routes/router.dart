@@ -4,12 +4,14 @@ import 'package:app/screens/edit_profile.dart';
 import 'package:app/screens/listening_history.dart';
 import 'package:app/screens/onboarding/onboarding.dart';
 import 'package:app/screens/player/full_player_screen.dart';
+import 'package:app/screens/preference_screen.dart';
 import 'package:app/screens/privacy_screen.dart';
 import 'package:app/screens/search_screen.dart';
 import 'package:app/screens/settings_screen.dart';
 import 'package:app/screens/sign_in_screen.dart';
 import 'package:app/screens/signup_screen.dart';
 import 'package:app/screens/splash.dart';
+import 'package:app/screens/update_loc.dart';
 import 'package:app/services/di/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -126,6 +128,16 @@ class AppRouter {
             
             // Profile routes
             GoRoute(
+              path: 'location',
+              builder: (context, state) {
+                return const UpdateLocationScreen();
+              },
+            ),    GoRoute(
+              path: 'preferences',
+              builder: (context, state) {
+                return const PreferenceScreen();
+              },
+            ),   GoRoute(
               path: 'settings',
               builder: (context, state) {
                 return const SettingsScreen();

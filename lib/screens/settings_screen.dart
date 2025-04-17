@@ -1,5 +1,6 @@
 // lib/screens/profile/settings_screen.dart
 import 'package:app/screens/privacy_screen.dart';
+import 'package:app/screens/signup_screen.dart';
 import 'package:app/services/api/settings_api.dart';
 import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/auth_widgets.dart';
@@ -10,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -58,8 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final settingsApi =
-          Provider.of<SettingsApiService>(context, listen: false);
+      final settingsApi = getIt<SettingsApiService>();
       await settingsApi.updateSetting(key, value);
 
       setState(() {
@@ -98,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
       ),
-      body:_buildSettingsList(),
+      body: _buildSettingsList(),
     );
   }
 
@@ -155,6 +156,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionHeader('Account'),
 
             _buildSettingCard(
+              title: 'Update Location',
+              subtitle: 'Find matches near you',
+              onTap: (){
+                context.go("/location");
+              }
+            ),   _buildSettingCard(
+              title: 'Update Preferences',
+              subtitle: 'Find matches near you',
+              onTap: (){
+                context.go("/preferences");
+              }
+            ),  _buildSettingCard(
               title: 'Email Notifications',
               subtitle: 'Receive email updates and notifications',
               trailing: Switch(

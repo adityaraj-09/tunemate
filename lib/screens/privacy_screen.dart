@@ -1,5 +1,6 @@
 // lib/screens/profile/privacy_settings_screen.dart
 import 'package:app/services/api/settings_api.dart';
+import 'package:app/services/di/service_locator.dart';
 import 'package:app/widgets/common/error_widgey.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +33,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     });
     
     try {
-      final settingsApi = Provider.of<SettingsApiService>(context, listen: false);
+      final settingsApi = getIt<SettingsApiService>();
       final settings = await settingsApi.getPrivacySettings();
       
       setState(() {

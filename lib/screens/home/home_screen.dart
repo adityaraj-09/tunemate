@@ -83,17 +83,17 @@ class _HomeScreenState extends State<HomeScreen>
       final profileApi = getIt<ProfileApiService>();
       // Fetch data in parallel
       final results = await Future.wait([
-        musicApi.getTrendingSongs(limit: 10),
-        musicApi.getPersonalRecommendations(limit: 15),
+        // musicApi.getTrendingSongs(limit: 10),
+        // musicApi.getPersonalRecommendations(limit: 15),
         profileApi.getMatches(limit: 5),
         // Fetch featured playlists would go here
       ]);
 
       if (mounted) {
         setState(() {
-          _trendingSongs = results[0] as List<Song>;
-          _recommendedSongs = results[1] as List<Song>;
-          _suggestedMatches = results[2];
+          // _trendingSongs = results[0] as List<Song>;
+          // _recommendedSongs = results[1] as List<Song>;
+          _suggestedMatches = results[0];
           _featuredPlaylists = []; // Placeholder for now
           _isLoading = false;
         });

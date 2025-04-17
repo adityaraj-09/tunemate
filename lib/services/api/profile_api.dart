@@ -123,18 +123,18 @@ class ProfileApiService {
   }
 
   // Get user matches
-  Future<List<Match>> getMatches({int limit = 20, int offset = 0}) async {
+  Future<List<Match>> getMatches({int limit = 20, int minScore = 0}) async {
     try {
       final response = await _dio.get(
-        '/api/matches',
+        '/api/matches/get',
         queryParameters: {
           'limit': limit,
-          'offset': offset,
+          'minScore': minScore,
         },
       );
 
-      if (response.data['success'] && response.data['data'] != null) {
-        return (response.data['data'] as List)
+      if ( response.data['matches'] != null) {
+        return (response.data['matches'] as List)
             .map((match) => Match.fromJson(match))
             .toList();
       }

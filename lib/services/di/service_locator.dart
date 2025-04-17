@@ -1,11 +1,16 @@
 // lib/services/di/service_locator.dart
+import 'package:app/providers/loc_provider.dart';
 import 'package:app/providers/music_player_provider.dart';
 import 'package:app/providers/music_provider.dart';
+import 'package:app/providers/pref_provider.dart';
 import 'package:app/providers/preference_provider.dart';
+import 'package:app/services/api/location_api.dart';
 import 'package:app/services/api/music_api.dart';
 import 'package:app/services/api/playlist_api.dart';
+import 'package:app/services/api/preference_api.dart';
 import 'package:app/services/api/profile_api.dart';
 import 'package:app/services/api/settings_api.dart';
+import 'package:app/services/api/user_pref.dart';
 import 'package:app/services/music/audio_player_service.dart';
 import 'package:app/services/music/background_player.dart';
 import 'package:app/services/search_history.dart';
@@ -119,6 +124,10 @@ Future<void> setupDependencies() async {
     () => SecureStorageService(getIt<FlutterSecureStorage>()),
   );
 
+  getIt.registerLazySingleton<LocationApiService>(
+    () => LocationApiService(getIt<Dio>()),
+  );
+
   final audioHandlerService = AudioHandlerService();
   await audioHandlerService.init(); // Initialize it before registration
 
@@ -143,7 +152,9 @@ Future<void> setupDependencies() async {
       () => ProfileApiService(getIt<Dio>()));
   getIt.registerLazySingleton<SettingsApiService>(
       () => SettingsApiService(getIt<Dio>()));
-
+getIt.registerLazySingleton<UserPreferenceService>(
+    () => UserPreferenceService(getIt<Dio>()),
+  );
   // Register providers
   getIt.registerLazySingleton<AuthProvider>(
     () => AuthProvider(
@@ -154,10 +165,26 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<MusicPlayerProvider>(
     () => MusicPlayerProvider(),
-  );getIt.registerLazySingleton<MusicProvider>(
+  );
+  getIt.registerLazySingleton<MusicProvider>(
     () => MusicProvider(),
   );
 
+
+  getIt.registerLazySingleton<LocationProvider>(() => LocationProvider(
+  locationService:   getIt<LocationApiService>()
+  ));
+
+  getIt.registerLazySingleton( () => MusicPreferencesProvider(
+  
+     getIt<PreferenceApiService>(),
+  ));
+
+  getIt.registerLazySingleton<UserPreferenceProvider>(
+    () => UserPreferenceProvider(
+      preferenceService:  getIt<UserPreferenceService>(),
+    ),
+  );
 }
 
 // List of providers to be used with MultiProvider
@@ -172,8 +199,13 @@ List<SingleChildWidget> get providers {
     ChangeNotifierProvider<MusicPreferencesProvider>(
       create: (_) => getIt<MusicPreferencesProvider>(),
     ),
-    ChangeNotifierProvider<MusicProvider>(create:
-        (_) => getIt<MusicProvider>()),
+    ChangeNotifierProvider<MusicProvider>(
+        create: (_) => getIt<MusicProvider>()),
+
+    ChangeNotifierProvider<LocationProvider>(
+        create: (_) => getIt<LocationProvider>()),
+    ChangeNotifierProvider<UserPreferenceProvider>(
+        create: (_) => getIt<UserPreferenceProvider>()),
 
     // Add more providers here as needed
   ];
